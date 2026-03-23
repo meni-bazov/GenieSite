@@ -1,4 +1,4 @@
-require("dotenv").config(); // טוען את הסיסמה מקובץ ה-.env
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -7,31 +7,32 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 1. חיבור למסד הנתונים (MongoDB)
+// הפקודה הזו אומרת לשרת להציג את קובץ ה-index.html ועיצוב ה-CSS למי שנכנס לאתר
+app.use(express.static(__dirname));
+
+// חיבור למסד הנתונים (MongoDB)
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Connected to MongoDB successfully!"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// 2. הגדרת "תבנית" (Schema) לשמירת הנתונים
-// בגלל שהטופס שלך דינמי, אנחנו שומרים את הכל בתור אובייקט אחד גמיש
+// הגדרת "תבנית" לשמירת הנתונים
 const FormSchema = new mongoose.Schema({
-  data: Object, // כאן יישבו כל הנתונים (שם עסק, שירותים, טון כתיבה וכו')
-  createdAt: { type: Date, default: Date.now }, // תאריך יצירה אוטומטי
+  data: Object,
+  createdAt: { type: Date, default: Date.now },
 });
 const FormModel = mongoose.model("ClientForm", FormSchema);
 
-// 3. הנתיב שמקבל את הטופס מהלקוח ושומר אותו
+// הנתיב שמקבל את הטופס מהלקוח ושומר אותו
 app.post("/api/submit-form", async (req, res) => {
   try {
     const clientData = req.body;
-    console.log(`התקבלו נתונים חדשים מהעסק: ${clientData.businessName}`);
+    console.log("התקבלו נתונים חדשים!");
 
     // שמירת הנתונים ב-MongoDB
     const newForm = new FormModel({ data: clientData });
     await newForm.save();
 
-    console.log("✅ הנתונים נשמרו בהצלחה במסד הנתונים!");
     res
       .status(200)
       .json({ success: true, message: "הנתונים התקבלו ונשמרו בהצלחה!" });
@@ -43,5 +44,5 @@ app.post("/api/submit-form", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 GenieSite Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
 });
