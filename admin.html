@@ -1,34 +1,41 @@
 <!doctype html>
-<html lang="he" dir="rtl" data-theme="light">
+<html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GenieSite Admin | לוח בקרה</title>
     <link rel="stylesheet" href="style.css" />
     <style>
-      /* תוספות CSS ספציפיות ללוח הבקרה */
       body {
         margin: 0;
         display: flex;
         height: 100vh;
         overflow: hidden;
+        font-family: Arial, sans-serif;
+        background: #f5f7fb;
       }
 
       /* Sidebar */
       .sidebar {
-        width: 280px;
-        background: var(--bg-card);
-        border-left: 1px solid var(--border-color);
+        width: 300px;
+        background: #ffffff;
+        border-left: 1px solid #e5e7eb;
         display: flex;
         flex-direction: column;
         height: 100%;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         z-index: 10;
       }
       .sidebar-header {
         padding: 20px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid #e5e7eb;
         text-align: center;
+        background: #111827;
+        color: white;
+      }
+      .sidebar-header h2 {
+        margin: 0;
+        font-size: 1.2rem;
       }
       .client-list {
         flex: 1;
@@ -39,48 +46,44 @@
       }
       .client-item {
         padding: 15px 20px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid #e5e7eb;
         cursor: pointer;
-        transition: var(--transition);
-        display: flex;
-        flex-direction: column;
+        transition: 0.2s ease;
       }
-      .client-item:hover,
+      .client-item:hover {
+        background: #f8fafc;
+      }
       .client-item.active {
-        background: rgba(123, 97, 255, 0.1);
-        border-right: 4px solid var(--primary);
+        background: #ebf5ff;
+        border-right: 4px solid #2563eb;
       }
       .client-name {
         font-weight: bold;
-        color: var(--text-main);
+        color: #111827;
+        display: block;
+        margin-bottom: 4px;
       }
-      .client-site {
-        font-size: 0.85rem;
-        color: var(--text-muted);
+      .client-date {
+        font-size: 0.8rem;
+        color: #6b7280;
       }
 
       /* Main Content */
-      .dashboard-main {
+      .main-panel {
         flex: 1;
         display: flex;
         flex-direction: column;
-        background: var(--bg-body);
         height: 100%;
       }
       .topbar {
-        height: 70px;
-        background: var(--bg-card);
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 30px;
+        padding: 20px 30px;
+        background: #ffffff;
+        border-bottom: 1px solid #e5e7eb;
       }
-      .admin-profile {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: bold;
+      .topbar h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #111827;
       }
 
       .content-area {
@@ -89,180 +92,208 @@
         flex: 1;
       }
 
-      /* Split View for Form Data vs AI Content */
+      /* Split View */
       .split-view {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-top: 20px;
+        gap: 24px;
+        height: 100%;
       }
       .data-panel {
-        background: var(--bg-card);
-        border-radius: var(--border-radius);
-        border: 1px solid var(--border-color);
-        box-shadow: var(--shadow-sm);
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
         display: flex;
         flex-direction: column;
-        height: calc(100vh - 200px);
       }
       .panel-header {
         padding: 15px 20px;
-        border-bottom: 1px solid var(--border-color);
-        background: rgba(123, 97, 255, 0.05);
+        border-bottom: 1px solid #e5e7eb;
+        background: #f8fafc;
         font-weight: bold;
+        border-radius: 12px 12px 0 0;
         display: flex;
         justify-content: space-between;
+        align-items: center;
       }
       .panel-body {
         padding: 20px;
         overflow-y: auto;
         flex: 1;
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+      .panel-body h3 {
+        margin-top: 0;
+        color: #2563eb;
+        font-size: 1.1rem;
+        margin-bottom: 10px;
       }
 
-      .ai-text-box {
-        width: 100%;
-        height: 100%;
-        border: 1px dashed var(--border-color);
-        background: var(--input-bg);
-        color: var(--text-main);
-        padding: 15px;
+      .action-btn {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 8px 16px;
         border-radius: 8px;
-        font-family: inherit;
-        resize: none;
+        cursor: pointer;
+        font-weight: bold;
       }
-      .ai-text-box:focus {
-        outline: none;
-        border-color: var(--primary);
+      .action-btn:hover {
+        background: #1d4ed8;
       }
-      .badge {
-        background: var(--accent);
-        color: #fff;
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 0.75rem;
+
+      .empty-state {
+        text-align: center;
+        color: #6b7280;
+        margin-top: 50px;
       }
     </style>
   </head>
   <body>
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="brand">
-          <span class="genie-icon">🪄</span> Genie<span class="highlight"
-            >Site</span
-          >
-        </div>
-        <div class="brand-subtitle">ניהול לקוחות</div>
+        <h2>🪄 GenieSite Admin</h2>
       </div>
-      <ul class="client-list">
-        <li class="client-item active">
-          <span class="client-name">MB Lights</span>
-          <span class="client-site">mblights.co.il</span>
-        </li>
+      <ul class="client-list" id="clientList">
         <li class="client-item">
-          <span class="client-name">מסעדת השף</span>
-          <span class="client-site">chef-rest.co.il</span>
+          <span class="client-name">טוען לקוחות...</span>
         </li>
       </ul>
     </aside>
 
-    <main class="dashboard-main">
+    <main class="main-panel">
       <header class="topbar">
-        <h2>סקירת פרויקט: MB Lights</h2>
-        <div class="admin-profile">
-          <span>שלום, מני</span>
-          <button class="btn btn-sm btn-outline" id="themeToggleAdmin">
-            🌙
-          </button>
-        </div>
+        <h1 id="topbarTitle">בחר לקוח מהרשימה</h1>
       </header>
 
       <div class="content-area">
-        <div class="flex-between">
-          <p class="text-muted">
-            כאן תוכל לעבור על החומרים שהלקוח הזין, לערוך את התוכן שה-AI ייצר,
-            ולאשר לפני שליחה.
-          </p>
-          <div class="actions">
-            <button class="btn btn-sm btn-outline-primary">
-              🤖 צור תוכן מחדש (AI)
-            </button>
-            <button class="btn btn-sm btn-primary">✅ אשר ושלח ללקוח</button>
+        <div class="split-view" id="splitView" style="display: none">
+          <div class="data-panel">
+            <div class="panel-header">
+              <span>📝 נתוני מקור (מהלקוח)</span>
+            </div>
+            <div class="panel-body" id="clientRawData"></div>
+          </div>
+
+          <div class="data-panel">
+            <div class="panel-header">
+              <span>✨ יצירת תוכן (AI)</span>
+              <button class="action-btn" onclick="generateAIContent()">
+                🤖 צור תוכן עכשיו
+              </button>
+            </div>
+            <div class="panel-body" id="aiContentArea">
+              <p class="empty-state">
+                לחץ על הכפתור למעלה כדי לשלוח את הנתונים ל-AI ולייצר תוכן
+                אוטומטי לאתר.
+              </p>
+            </div>
           </div>
         </div>
 
-        <div class="split-view">
-          <div class="data-panel">
-            <div class="panel-header">
-              <span>📝 נתונים מהטופס (מקור)</span>
-              <span class="badge">הושלם</span>
-            </div>
-            <div class="panel-body">
-              <h4>1. פרטים כלליים</h4>
-              <p><strong>שם העסק:</strong> MB Lights</p>
-              <p><strong>סלוגן:</strong> מאירים לכם את האירוע</p>
-              <hr
-                style="
-                  border: 0;
-                  border-top: 1px solid var(--border-color);
-                  margin: 15px 0;
-                "
-              />
-              <h4>2. שירותים</h4>
-              <ul>
-                <li>תאורת במה מקצועית</li>
-                <li>פנסים חכמים לאירועים</li>
-              </ul>
-              <hr
-                style="
-                  border: 0;
-                  border-top: 1px solid var(--border-color);
-                  margin: 15px 0;
-                "
-              />
-              <h4>3. טון וסגנון</h4>
-              <p>מקצועי, יוקרתי, עברית.</p>
-            </div>
-          </div>
-
-          <div class="data-panel">
-            <div class="panel-header">
-              <span>✨ תוכן שנוצר (AI)</span>
-              <span>עריכה פתוחה</span>
-            </div>
-            <div class="panel-body" style="padding: 10px">
-              <textarea class="ai-text-box">
-[דף הבית - עמוד ראשי]
-כותרת ראשית (H1): MB Lights - פתרונות תאורה מתקדמים לאירוע בלתי נשכח
-תת כותרת: המומחיות שלנו היא להפוך כל רגע לחוויה חושית עם תאורת במה מקצועית ופנסים חכמים.
-
-[אודות]
-אנחנו ב-MB Lights חיים ונושמים את עולם הבמה...
-
-[SEO]
-Meta Title: תאורת במה ופנסים חכמים לאירועים | MB Lights
-Meta Description: מחפשים פתרונות תאורה מקצועיים? MB Lights מציעה תאורת במה מתקדמת ופנסים חכמים שיהפכו כל אירוע למושלם.
-              </textarea>
-            </div>
-          </div>
+        <div id="welcomeState" class="empty-state" style="margin-top: 20vh">
+          <h2>ברוך הבא למערכת הניהול של GenieSite</h2>
+          <p>בחר לקוח מהתפריט בצד כדי לצפות בפרטים שלו וליצור עבורו תוכן.</p>
         </div>
       </div>
     </main>
 
     <script>
-      // הוספת פונקציונליות Dark Mode גם לאדמין
-      const themeToggle = document.getElementById("themeToggleAdmin");
-      const htmlElement = document.documentElement;
-      const savedTheme = localStorage.getItem("genieTheme") || "light";
-      htmlElement.setAttribute("data-theme", savedTheme);
-      themeToggle.innerText = savedTheme === "dark" ? "☀️" : "🌙";
+      let clientsData = [];
 
-      themeToggle.addEventListener("click", () => {
-        const newTheme =
-          htmlElement.getAttribute("data-theme") === "light" ? "dark" : "light";
-        htmlElement.setAttribute("data-theme", newTheme);
-        localStorage.setItem("genieTheme", newTheme);
-        themeToggle.innerText = newTheme === "dark" ? "☀️" : "🌙";
-      });
+      // פונקציה למשיכת הלקוחות מהשרת
+      async function fetchClients() {
+        try {
+          const res = await fetch("/api/clients");
+          const data = await res.json();
+          if (data.success) {
+            clientsData = data.clients;
+            renderClientList();
+          }
+        } catch (err) {
+          console.error("Error fetching clients:", err);
+          document.getElementById("clientList").innerHTML =
+            '<li class="client-item">שגיאה בטעינת הנתונים</li>';
+        }
+      }
+
+      // רינדור רשימת הלקוחות בתפריט הצד
+      function renderClientList() {
+        const listEl = document.getElementById("clientList");
+        listEl.innerHTML = "";
+
+        if (clientsData.length === 0) {
+          listEl.innerHTML = '<li class="client-item">אין לקוחות עדיין</li>';
+          return;
+        }
+
+        clientsData.forEach((client, index) => {
+          const date = new Date(client.createdAt).toLocaleDateString("he-IL", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          const businessName =
+            client.data?.general?.businessName || "עסק ללא שם";
+
+          const li = document.createElement("li");
+          li.className = "client-item";
+          li.innerHTML = `
+            <span class="client-name">${businessName}</span>
+            <span class="client-date">${date}</span>
+          `;
+          li.onclick = () => selectClient(index, li);
+          listEl.appendChild(li);
+        });
+      }
+
+      // בחירת לקוח והצגת הנתונים שלו
+      function selectClient(index, liElement) {
+        // סימון הלקוח כפעיל בתפריט
+        document
+          .querySelectorAll(".client-item")
+          .forEach((el) => el.classList.remove("active"));
+        liElement.classList.add("active");
+
+        const client = clientsData[index].data;
+
+        // החלפת תצוגה
+        document.getElementById("welcomeState").style.display = "none";
+        document.getElementById("splitView").style.display = "grid";
+        document.getElementById("topbarTitle").innerText =
+          client.general?.businessName || "פרטי לקוח";
+
+        // הזרקת הנתונים למסך
+        const rawDataEl = document.getElementById("clientRawData");
+        rawDataEl.innerHTML = `
+          <h3>פרטים כלליים</h3>
+          <p><strong>דומיין:</strong> ${client.general?.domain || "לא הוזן"}</p>
+          <p><strong>סלוגן:</strong> ${client.general?.slogan || "לא הוזן"}</p>
+          <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
+          
+          <h3>על העסק</h3>
+          <p>${client.business?.businessDescription || "לא הוזן"}</p>
+          <p><strong>קהל יעד:</strong> ${client.business?.targetAudience || "לא הוזן"}</p>
+          <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
+          
+          <h3>עמודים מבוקשים</h3>
+          <p>${client.pages?.selected?.join(", ") || "לא נבחרו עמודים"}</p>
+        `;
+
+        // איפוס אזור ה-AI
+        document.getElementById("aiContentArea").innerHTML =
+          '<p class="empty-state">לחץ על הכפתור למעלה כדי לשלוח את הנתונים ל-AI ולייצר תוכן אוטומטי לאתר.</p>';
+      }
+
+      function generateAIContent() {
+        alert(
+          "כאן אנחנו נחבר בקרוב את ה-API של המודל AI שלך (Gemini / Claude / OpenAI) שיקרא את הנתונים שמשמאל וייצר תוכן אוטומטי!",
+        );
+      }
+
+      // הפעלה ראשונית
+      fetchClients();
     </script>
   </body>
 </html>

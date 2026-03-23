@@ -7,38 +7,43 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// הפקודה הזו אומרת לשרת להציג את קובץ ה-index.html ועיצוב ה-CSS למי שנכנס לאתר
 app.use(express.static(__dirname));
 
-// חיבור למסד הנתונים (MongoDB)
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Connected to MongoDB successfully!"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// הגדרת "תבנית" לשמירת הנתונים
 const FormSchema = new mongoose.Schema({
   data: Object,
   createdAt: { type: Date, default: Date.now },
 });
 const FormModel = mongoose.model("ClientForm", FormSchema);
 
-// הנתיב שמקבל את הטופס מהלקוח ושומר אותו
+// נתיב קבלת טופס מלקוח (מה שעשינו עד עכשיו)
 app.post("/api/submit-form", async (req, res) => {
   try {
     const clientData = req.body;
-    console.log("התקבלו נתונים חדשים!");
-
-    // שמירת הנתונים ב-MongoDB
     const newForm = new FormModel({ data: clientData });
     await newForm.save();
-
     res
       .status(200)
       .json({ success: true, message: "הנתונים התקבלו ונשמרו בהצלחה!" });
   } catch (error) {
     console.error("❌ שגיאה בשמירה למסד הנתונים:", error);
     res.status(500).json({ success: false, message: "שגיאת שרת פנימית" });
+  }
+});
+
+// --- חדש: נתיב למשיכת כל הלקוחות עבור פאנל המנהל ---
+app.get("/api/clients", async (req, res) => {
+  try {
+    // מביא את כל הטפסים ומסדר אותם מהחדש ביותר לישן ביותר
+    const clients = await FormModel.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, clients: clients });
+  } catch (error) {
+    console.error("❌ שגיאה במשיכת נתונים:", error);
+    res.status(500).json({ success: false, message: "שגיאת שרת" });
   }
 });
 
