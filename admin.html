@@ -234,8 +234,11 @@
             hour: "2-digit",
             minute: "2-digit",
           });
+          // תוקן: קריאה ישירה של שם העסק מתוך האובייקט
           const businessName =
-            client.data?.general?.businessName || "עסק ללא שם";
+            client.data?.businessName ||
+            client.data?.general?.businessName ||
+            "עסק ללא שם";
 
           const li = document.createElement("li");
           li.className = "client-item";
@@ -256,29 +259,44 @@
           .forEach((el) => el.classList.remove("active"));
         liElement.classList.add("active");
 
+        // שליפת הנתונים של הלקוח הספציפי
         const client = clientsData[index].data;
 
         // החלפת תצוגה
         document.getElementById("welcomeState").style.display = "none";
         document.getElementById("splitView").style.display = "grid";
-        document.getElementById("topbarTitle").innerText =
-          client.general?.businessName || "פרטי לקוח";
 
-        // הזרקת הנתונים למסך
+        // תוקן: קריאה ישירה של הנתונים להצגה
+        document.getElementById("topbarTitle").innerText =
+          client.businessName || client.general?.businessName || "פרטי לקוח";
+
+        // הזרקת הנתונים למסך - מתאים למבנה שבו זה נשמר במסד הנתונים
         const rawDataEl = document.getElementById("clientRawData");
+
+        // טיפול בעמודים שנבחרו (מערך)
+        let pagesDisplay = "לא נבחרו עמודים";
+        if (client.pages && Array.isArray(client.pages)) {
+          pagesDisplay = client.pages.join(", ");
+        } else if (
+          client.pages?.selected &&
+          Array.isArray(client.pages.selected)
+        ) {
+          pagesDisplay = client.pages.selected.join(", ");
+        }
+
         rawDataEl.innerHTML = `
           <h3>פרטים כלליים</h3>
-          <p><strong>דומיין:</strong> ${client.general?.domain || "לא הוזן"}</p>
-          <p><strong>סלוגן:</strong> ${client.general?.slogan || "לא הוזן"}</p>
+          <p><strong>דומיין:</strong> ${client.domain || client.general?.domain || "לא הוזן"}</p>
+          <p><strong>סלוגן:</strong> ${client.slogan || client.general?.slogan || "לא הוזן"}</p>
           <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
           
           <h3>על העסק</h3>
-          <p>${client.business?.businessDescription || "לא הוזן"}</p>
-          <p><strong>קהל יעד:</strong> ${client.business?.targetAudience || "לא הוזן"}</p>
+          <p>${client.businessDescription || client.business?.businessDescription || "לא הוזן"}</p>
+          <p><strong>קהל יעד:</strong> ${client.targetAudience || client.business?.targetAudience || "לא הוזן"}</p>
           <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
           
           <h3>עמודים מבוקשים</h3>
-          <p>${client.pages?.selected?.join(", ") || "לא נבחרו עמודים"}</p>
+          <p>${pagesDisplay}</p>
         `;
 
         // איפוס אזור ה-AI
@@ -288,7 +306,7 @@
 
       function generateAIContent() {
         alert(
-          "כאן אנחנו נחבר בקרוב את ה-API של המודל AI שלך (Gemini / Claude / OpenAI) שיקרא את הנתונים שמשמאל וייצר תוכן אוטומטי!",
+          "כאן אנחנו נחבר בקרוב את ה-API של המודל AI שלך שיקרא את הנתונים שמשמאל וייצר תוכן אוטומטי!",
         );
       }
 
