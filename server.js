@@ -1,37 +1,30 @@
 const express = require("express");
 const cors = require("cors");
 
-// אתחול האפליקציה
 const app = express();
 
-// Middleware - מאפשר תקשורת בין ה-Frontend ל-Backend ומאפשר קריאת JSON
+// מאפשר לשרת לקבל נתונים מהדפדפן
 app.use(cors());
 app.use(express.json());
 
-// נתיב (Route) לקבלת נתוני הטופס מהלקוח
+// הנתיב שמקבל את נתוני הטופס
 app.post("/api/submit-form", async (req, res) => {
   try {
     const clientData = req.body;
+    console.log("✅ התקבלו נתונים חדשים עבור GenieSite!", clientData);
 
-    console.log("✅ התקבלו נתונים חדשים מהלקוח:", clientData.businessName);
-    console.log(clientData);
+    // בהמשך כאן נוסיף את השמירה ל-MongoDB ואת הקריאה ל-AI
 
-    // --- השלבים הבאים שנוסיף כאן: ---
-    // 1. שמירת clientData במסד הנתונים
-    // 2. קריאה ל-API של ה-AI עם פרומפט מובנה
-
-    // שליחת תשובה חזרה לדפדפן של הלקוח
-    res.status(200).json({
-      success: true,
-      message: "הנתונים התקבלו בהצלחה והועברו ל-GenieSite!",
-    });
+    res
+      .status(200)
+      .json({ success: true, message: "הנתונים התקבלו בשרת בהצלחה!" });
   } catch (error) {
-    console.error("❌ שגיאה בשרת:", error);
+    console.error("שגיאה:", error);
     res.status(500).json({ success: false, message: "שגיאת שרת פנימית" });
   }
 });
 
-// הפעלת השרת
+// הגדרת הפורט שעליו השרת ירוץ בהוסטינגר
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 GenieSite Server is running on port ${PORT}`);
