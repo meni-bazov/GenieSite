@@ -203,7 +203,7 @@
     <script>
       let clientsData = [];
 
-      // פונקציה למשיכת הלקוחות מהשרת
+      // משיכת לקוחות מהשרת
       async function fetchClients() {
         try {
           const res = await fetch("/api/clients");
@@ -219,7 +219,7 @@
         }
       }
 
-      // רינדור רשימת הלקוחות בתפריט הצד
+      // יצירת רשימת תפריט הצד
       function renderClientList() {
         const listEl = document.getElementById("clientList");
         listEl.innerHTML = "";
@@ -234,7 +234,6 @@
             hour: "2-digit",
             minute: "2-digit",
           });
-          // תוקן: קריאה ישירה של שם העסק מתוך האובייקט
           const businessName =
             client.data?.businessName ||
             client.data?.general?.businessName ||
@@ -251,30 +250,100 @@
         });
       }
 
-      // בחירת לקוח והצגת הנתונים שלו
+      // הצגת הלקוח שנבחר במסך המרכזי
       function selectClient(index, liElement) {
-        // סימון הלקוח כפעיל בתפריט
         document
           .querySelectorAll(".client-item")
           .forEach((el) => el.classList.remove("active"));
         liElement.classList.add("active");
 
-        // שליפת הנתונים של הלקוח הספציפי
         const client = clientsData[index].data;
 
-        // החלפת תצוגה
         document.getElementById("welcomeState").style.display = "none";
         document.getElementById("splitView").style.display = "grid";
-
-        // תוקן: קריאה ישירה של הנתונים להצגה
         document.getElementById("topbarTitle").innerText =
           client.businessName || client.general?.businessName || "פרטי לקוח";
 
-        // הזרקת הנתונים למסך - מתאים למבנה שבו זה נשמר במסד הנתונים
-        const rawDataEl = document.getElementById("clientRawData");
+        // פונקציית עזר להצגת ערך ריק באפור
+        const val = (v) =>
+          v
+            ? v
+            : '<span style="color:#9ca3af; font-style:italic;">לא הוזן</span>';
 
-        // טיפול בעמודים שנבחרו (מערך)
-        let pagesDisplay = "לא נבחרו עמודים";
+        // שליפת הנתונים (תומך בכל המבנים)
+        const siteName = client.siteName || client.general?.siteName;
+        const domain = client.domain || client.general?.domain;
+        const slogan = client.slogan || client.general?.slogan;
+
+        const bizDesc =
+          client.businessDescription || client.business?.businessDescription;
+        const audience =
+          client.targetAudience || client.business?.targetAudience;
+        const uniqueVal = client.uniqueValue || client.business?.uniqueValue;
+
+        const tone = client.tone || client.style?.tone;
+        const length = client.contentLength || client.style?.contentLength;
+        const lang = client.language || client.style?.language;
+
+        const refSites =
+          client.referenceSites || client.inspiration?.referenceSites;
+        const designStyle =
+          client.designStyle || client.inspiration?.designStyle;
+
+        const brandColors = client.brandColors || client.branding?.brandColors;
+        const prefFont = client.preferredFont || client.branding?.preferredFont;
+
+        const phone = client.phone || client.contact?.phone;
+        const email = client.email || client.contact?.email;
+        const address = client.address || client.contact?.address;
+        const hours = client.hours || client.contact?.hours;
+
+        const facebook = client.facebook || client.social?.facebook;
+        const instagram = client.instagram || client.social?.instagram;
+
+        const seoKw = client.seoKeywords || client.seo?.keywords;
+        const seoArea = client.serviceArea || client.seo?.serviceArea;
+        const extra = client.extraNotes;
+
+        // בניית רשימת השירותים
+        let servicesHtml = "";
+        if (client.services && client.services.length > 0) {
+          servicesHtml = client.services
+            .map((s) => `<li><strong>${s.name}</strong>: ${s.description}</li>`)
+            .join("");
+        } else {
+          servicesHtml = val("");
+        }
+
+        // בניית רשימת היתרונות
+        let benefitsHtml = "";
+        if (client.benefits && client.benefits.length > 0) {
+          benefitsHtml = client.benefits
+            .map(
+              (b) => `<li><strong>${b.title}</strong>: ${b.description}</li>`,
+            )
+            .join("");
+        } else {
+          benefitsHtml = val("");
+        }
+
+        // בניית המלצות
+        let testimonialsHtml = "";
+        if (client.testimonials && Array.isArray(client.testimonials)) {
+          testimonialsHtml = client.testimonials
+            .map((t) => `<li><strong>${t.name}</strong>: ${t.text}</li>`)
+            .join("");
+        } else if (
+          typeof client.testimonials === "string" &&
+          client.testimonials.trim() !== ""
+        ) {
+          testimonialsHtml = client.testimonials;
+        } else {
+          testimonialsHtml = val("");
+        }
+
+        // טיפול בעמודים
+        let pagesDisplay = "";
         if (client.pages && Array.isArray(client.pages)) {
           pagesDisplay = client.pages.join(", ");
         } else if (
@@ -283,30 +352,67 @@
         ) {
           pagesDisplay = client.pages.selected.join(", ");
         }
+        const otherPages = client.otherPages || client.pages?.otherPages;
+        if (otherPages) pagesDisplay += ` (נוספים: ${otherPages})`;
+        if (!pagesDisplay) pagesDisplay = val("");
 
+        // הזרקת הנתונים למסך
+        const rawDataEl = document.getElementById("clientRawData");
         rawDataEl.innerHTML = `
-          <h3>פרטים כלליים</h3>
-          <p><strong>דומיין:</strong> ${client.domain || client.general?.domain || "לא הוזן"}</p>
-          <p><strong>סלוגן:</strong> ${client.slogan || client.general?.slogan || "לא הוזן"}</p>
+          <h3>1. פרטים כלליים</h3>
+          <p><strong>שם האתר:</strong> ${val(siteName)}</p>
+          <p><strong>דומיין:</strong> ${val(domain)}</p>
+          <p><strong>סלוגן:</strong> ${val(slogan)}</p>
           <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
           
-          <h3>על העסק</h3>
-          <p>${client.businessDescription || client.business?.businessDescription || "לא הוזן"}</p>
-          <p><strong>קהל יעד:</strong> ${client.targetAudience || client.business?.targetAudience || "לא הוזן"}</p>
+          <h3>2. על העסק</h3>
+          <p><strong>תיאור:</strong> ${val(bizDesc)}</p>
+          <p><strong>קהל יעד:</strong> ${val(audience)}</p>
+          <p><strong>ייחודיות:</strong> ${val(uniqueVal)}</p>
           <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
           
-          <h3>עמודים מבוקשים</h3>
-          <p>${pagesDisplay}</p>
+          <h3>3. שירותים / מוצרים</h3>
+          <ul>${servicesHtml}</ul>
+          <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
+
+          <h3>4. יתרונות (Benefits)</h3>
+          <ul>${benefitsHtml}</ul>
+          <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
+
+          <h3>5. טון, סגנון והשראה</h3>
+          <p><strong>טון:</strong> ${val(tone)} | <strong>אורך:</strong> ${val(length)} | <strong>שפה:</strong> ${val(lang)}</p>
+          <p><strong>אתרי השראה:</strong> ${val(refSites)}</p>
+          <p><strong>סגנון עיצוב:</strong> ${val(designStyle)}</p>
+          <p><strong>צבעים:</strong> ${val(brandColors)} | <strong>פונט:</strong> ${val(prefFont)}</p>
+          <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
+
+          <h3>6. פרטי התקשרות ורשתות</h3>
+          <p><strong>טלפון:</strong> ${val(phone)} | <strong>דוא"ל:</strong> ${val(email)}</p>
+          <p><strong>כתובת:</strong> ${val(address)} | <strong>שעות:</strong> ${val(hours)}</p>
+          <p><strong>רשתות:</strong> FB: ${val(facebook)} | IG: ${val(instagram)}</p>
+          <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
+
+          <h3>7. המלצות (Testimonials)</h3>
+          <ul>${testimonialsHtml}</ul>
+          <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
+
+          <h3>8. SEO ועמודים</h3>
+          <p><strong>מילות מפתח:</strong> ${val(seoKw)}</p>
+          <p><strong>אזור שירות:</strong> ${val(seoArea)}</p>
+          <p><strong>עמודים מבוקשים:</strong> ${pagesDisplay}</p>
+          <hr style="border:0; border-top:1px solid #e5e7eb; margin:15px 0;">
+
+          <h3>9. הערות נוספות</h3>
+          <p>${val(extra)}</p>
         `;
 
-        // איפוס אזור ה-AI
         document.getElementById("aiContentArea").innerHTML =
           '<p class="empty-state">לחץ על הכפתור למעלה כדי לשלוח את הנתונים ל-AI ולייצר תוכן אוטומטי לאתר.</p>';
       }
 
       function generateAIContent() {
         alert(
-          "כאן אנחנו נחבר בקרוב את ה-API של המודל AI שלך שיקרא את הנתונים שמשמאל וייצר תוכן אוטומטי!",
+          "השלב הבא: בניית הפרומפט המדויק מכל הנתונים האלו, ושליחה ל-API של מודל ה-AI!",
         );
       }
 
