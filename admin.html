@@ -346,32 +346,5 @@
     </div>
 
     <script src="adminScript.js"></script>
-    <script>
-      // ניהול מצב לילה
-      lucide.createIcons();
-      const themeToggle = document.getElementById("themeToggleAdmin");
-      const htmlElement = document.documentElement;
-      const themeIcon = document.getElementById("themeIcon");
-
-      const savedTheme = localStorage.getItem("genieTheme") || "light";
-      htmlElement.setAttribute("data-theme", savedTheme);
-      themeIcon.setAttribute(
-        "data-lucide",
-        savedTheme === "dark" ? "sun" : "moon",
-      );
-      lucide.createIcons();
-
-      themeToggle.addEventListener("click", () => {
-        const newTheme =
-          htmlElement.getAttribute("data-theme") === "light" ? "dark" : "light";
-        htmlElement.setAttribute("data-theme", newTheme);
-        localStorage.setItem("genieTheme", newTheme);
-        themeIcon.setAttribute(
-          "data-lucide",
-          newTheme === "dark" ? "sun" : "moon",
-        );
-        lucide.createIcons();
-      });
-    </script>
   </body>
 </html>
