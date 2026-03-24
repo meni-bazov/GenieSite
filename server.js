@@ -14,10 +14,12 @@ mongoose
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => console.error("❌ MongoDB error:", err));
 
+// הוספנו כאן את aiContent כדי שיישמר במסד הנתונים
 const FormModel = mongoose.model(
   "ClientForm",
   new mongoose.Schema({
     data: Object,
+    aiContent: { type: Array, default: null },
     createdAt: { type: Date, default: Date.now },
   }),
 );
@@ -35,7 +37,6 @@ function buildMasterPrompt(clientData) {
   const data = clientData;
   const tone = data.tone || "מקצועי";
   const lang = data.language || "עברית (רבים)";
-
   let pagesList = "";
   if (data.pages && Array.isArray(data.pages))
     pagesList = data.pages.join(", ");
@@ -43,7 +44,7 @@ function buildMasterPrompt(clientData) {
     pagesList = data.pages.selected.join(", ");
   if (data.otherPages) pagesList += ` (בנוסף: ${data.otherPages})`;
 
-  let context = `
+  return `
 אתה מומחה קופירייט שבונה תוכן מלא לאתר אינטרנט חדש עבור העסק: "${data.businessName}". 
 מטרת העסק: ${data.businessDescription}. קהל יעד: ${data.targetAudience}. ייחודיות: ${data.uniqueValue}.
 טון כתיבה נדרש: ${tone}. שפת כתיבה: ${lang}. 
@@ -52,56 +53,61 @@ function buildMasterPrompt(clientData) {
 החזר את התשובה אך ורק במבנה המדויק הבא של מערך (Array) של אובייקטים ב-JSON:
 [
   {
-    "pageName": "שם הדף (לדוגמה: דף הבית)",
+    "pageName": "שם הדף",
     "sections": [
       {
-        "sectionTitle": "שם הסקשן (לדוגמה: באנר ראשי)",
+        "sectionTitle": "שם הסקשן",
         "content": "התוכן המלא כאן"
       }
     ]
   }
 ]
 `;
-  return context;
 }
 
+// נתיב יצירת AI - עכשיו גם שומר אוטומטית למסד הנתונים!
 app.post("/api/generate-content/:id", async (req, res) => {
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({
-        success: false,
-        message: "חסר מפתח GEMINI_API_KEY בהגדרות השרת בהוסטינגר.",
-      });
-    }
-
+    if (!process.env.GEMINI_API_KEY)
+      return res
+        .status(500)
+        .json({ success: false, message: "חסר מפתח GEMINI_API_KEY" });
     const client = await FormModel.findById(req.params.id);
     if (!client)
       return res
         .status(404)
         .json({ success: false, message: "Client not found" });
 
-    console.log(`🧠 Generating AI content for: ${client.data.businessName}`);
-
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // שינוי קריטי למודל החדש והפעיל של גוגל:
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" },
     });
 
-    const prompt = buildMasterPrompt(client.data);
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const result = await model.generateContent(buildMasterPrompt(client.data));
+    const generatedContent = JSON.parse(result.response.text());
 
-    const generatedContent = JSON.parse(responseText);
+    // שמירה למסד הנתונים
+    client.aiContent = generatedContent;
+    await client.save();
 
-    console.log("✅ Content generated successfully by Gemini!");
     res.json({ success: true, content: generatedContent });
   } catch (error) {
-    console.error("❌ AI Generation error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: error.message || "שגיאת שרת פנימית" });
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// --- נתיב חדש: שמירת העריכות הידניות שלך! ---
+app.put("/api/clients/:id/ai-content", async (req, res) => {
+  try {
+    const client = await FormModel.findById(req.params.id);
+    if (!client) return res.status(404).json({ success: false });
+
+    client.aiContent = req.body.content;
+    await client.save();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 

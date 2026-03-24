@@ -1,68 +1,34 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // --- 1. ניהול מצב תצוגה (Dark Mode) ---
-  if (window.lucide) window.lucide.createIcons();
-  const themeToggle = document.getElementById("themeToggleAdmin");
-  const htmlElement = document.documentElement;
-  const themeIcon = document.getElementById("themeIcon");
-
-  const savedTheme = localStorage.getItem("genieTheme") || "light";
-  htmlElement.setAttribute("data-theme", savedTheme);
-  if (themeIcon)
-    themeIcon.setAttribute(
-      "data-lucide",
-      savedTheme === "dark" ? "sun" : "moon",
-    );
-  if (window.lucide) window.lucide.createIcons();
-
-  if (themeToggle) {
-    themeToggle.addEventListener("click", () => {
-      const newTheme =
-        htmlElement.getAttribute("data-theme") === "light" ? "dark" : "light";
-      htmlElement.setAttribute("data-theme", newTheme);
-      localStorage.setItem("genieTheme", newTheme);
-      if (themeIcon)
-        themeIcon.setAttribute(
-          "data-lucide",
-          newTheme === "dark" ? "sun" : "moon",
-        );
-      if (window.lucide) window.lucide.createIcons();
-    });
-  }
-
-  // --- 2. משתנים ופונקציות מערכת ---
   let clientsData = [];
+  let activeClientIndex = null;
   let currentClientId = null;
   let currentAIContent = null;
+  let currentView = "raw"; // שומר באיזה מסך אנחנו (אפיון או AI)
   let clientToDeleteIndex = null;
-  let clientToDeleteElement = null;
 
   const modal = document.getElementById("deleteModal");
   const modalNameEl = document.getElementById("modalClientName");
 
   async function fetchClients() {
-    const listEl = document.getElementById("clientList");
     try {
       const res = await fetch("/api/clients");
       const data = await res.json();
       if (data.success) {
         clientsData = data.clients;
         renderClientList();
-      } else {
-        listEl.innerHTML =
-          '<li class="client-item text-muted" style="justify-content:center;">שגיאה בטעינת הנתונים</li>';
       }
     } catch (err) {
-      listEl.innerHTML =
-        '<li class="client-item text-muted" style="justify-content:center;">שגיאה בתקשורת מול השרת</li>';
+      console.error(err);
     }
   }
 
+  // ציור תפריט הצד (הסייד-בר) עם הכפתורים החכמים!
   function renderClientList() {
     const listEl = document.getElementById("clientList");
     listEl.innerHTML = "";
     if (clientsData.length === 0) {
       listEl.innerHTML =
-        '<li class="client-item text-muted" style="justify-content:center;">אין טפסים עדיין</li>';
+        '<li class="client-item text-muted" style="text-align:center;">אין טפסים עדיין</li>';
       return;
     }
 
@@ -75,12 +41,38 @@ document.addEventListener("DOMContentLoaded", () => {
         client.data?.businessName ||
         client.data?.general?.businessName ||
         "עסק ללא שם";
+
       const li = document.createElement("li");
-      li.className = "client-item";
-      li.innerHTML = `<div><span class="client-name">${businessName}</span><span class="client-date">${date}</span></div>
-                <button type="button" class="btn-icon remove-client-btn" title="מחק"><i data-lucide="trash-2" style="width:18px; height:18px;"></i></button>`;
+      li.className = `client-item ${index === activeClientIndex ? "active" : ""}`;
+
+      // יצירת פאנל הכפתורים אם הלקוח פעיל
+      let actionsHtml = "";
+      if (index === activeClientIndex) {
+        actionsHtml = `
+                    <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-sm ${currentView === "raw" ? "btn-primary" : "btn-outline"}" style="flex:1; padding:0.4rem;" onclick="switchView('raw', event)"><i data-lucide="file-text" style="width:14px;height:14px;"></i> אפיון</button>
+                            <button class="btn btn-sm ${currentView === "ai" ? "btn-primary" : "btn-outline"}" style="flex:1; padding:0.4rem;" onclick="switchView('ai', event)"><i data-lucide="sparkles" style="width:14px;height:14px;"></i> AI</button>
+                        </div>
+                        ${currentView === "ai" && currentAIContent ? `<button class="btn btn-sm btn-primary" style="background: #10b981; border-color: #10b981; width: 100%; padding:0.4rem;" onclick="saveEditedContent(event)"><i data-lucide="save" style="width:14px;height:14px;"></i> שמור עריכה</button>` : ""}
+                    </div>
+                `;
+      }
+
+      li.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; width: 100%;">
+                    <div>
+                        <span class="client-name">${businessName}</span>
+                        <span class="client-date">${date}</span>
+                    </div>
+                    <button type="button" class="btn-icon remove-client-btn" title="מחק" style="opacity: 1; color: var(--danger);"><i data-lucide="trash-2" style="width:18px; height:18px;"></i></button>
+                </div>
+                ${actionsHtml}
+            `;
+
       li.addEventListener("click", (e) => {
-        if (!e.target.closest(".remove-client-btn")) selectClient(index, li);
+        if (e.target.closest("button")) return; // לא לוחץ אם לחצו על כפתור פנימי
+        selectClient(index);
       });
       li.querySelector(".remove-client-btn").addEventListener("click", (e) => {
         e.stopPropagation();
@@ -91,262 +83,250 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.lucide) window.lucide.createIcons();
   }
 
-  // --- 3. הצגת כל הנתונים של הלקוח ---
-  function selectClient(index, liElement) {
-    document
-      .querySelectorAll(".client-item")
-      .forEach((el) => el.classList.remove("active"));
-    liElement.classList.add("active");
+  // מעבר בין מסך אפיון למסך AI
+  window.switchView = function (view, event) {
+    if (event) event.stopPropagation();
+    currentView = view;
+    renderClientList(); // מעדכן צבעי כפתורים בסיידבר
+    renderMainView(); // מחליף את התוכן בעמודה המרכזית
+  };
 
+  function selectClient(index) {
+    activeClientIndex = index;
     currentClientId = clientsData[index]._id;
-    currentAIContent = null;
-
-    const client = clientsData[index].data;
+    currentAIContent = clientsData[index].aiContent || null; // טוען תוכן שמור אם יש!
+    currentView = "raw";
     document.getElementById("welcomeState").style.display = "none";
-    document.getElementById("splitView").style.display = "block";
+
+    renderClientList();
+    renderMainView();
+  }
+
+  // מצייר את העמודה המרכזית (או אפיון או AI)
+  function renderMainView() {
+    const client = clientsData[activeClientIndex].data;
     document.getElementById("topbarTitle").innerText =
       client.businessName || "פרטי לקוח";
 
-    resetAIOutputPanel();
-
-    // פונקציות עזר לסידור השורות
-    const val = (v) =>
-      v
-        ? `<span>${v}</span>`
-        : '<span style="color:var(--text-muted); font-style:italic; background:transparent; border:none; padding:0;">לא הוזן</span>';
-    const line = (label, value) =>
-      `<div class="data-line"><strong>${label}</strong> ${val(value)}</div>`;
-    const listHtml = (arr, renderFn) => {
-      if (!arr || arr.length === 0)
-        return `<div class="data-line">${val("")}</div>`;
-      return `<div class="data-line" style="gap:0.5rem;">${arr.map(renderFn).join("")}</div>`;
-    };
-
-    const rawDataEl = document.getElementById("clientRawData");
-
-    // החזרת כל הנתונים במלואם
-    rawDataEl.innerHTML = `
-          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="info" style="width:18px;height:18px;"></i> 1. פרטים כלליים</h3>
-          ${line("שם האתר", client.siteName || client.general?.siteName)}
-          ${line("דומיין", client.domain || client.general?.domain)}
-          ${line("סלוגן", client.slogan || client.general?.slogan)}
-          <hr style="border-top:1px solid var(--border-color); margin:1.5rem 0;">
-          
-          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="briefcase" style="width:18px;height:18px;"></i> 2. על העסק</h3>
-          ${line("תיאור העסק", client.businessDescription || client.business?.businessDescription)}
-          ${line("קהל יעד", client.targetAudience || client.business?.targetAudience)}
-          ${line("הייחודיות", client.uniqueValue || client.business?.uniqueValue)}
-          <hr style="border-top:1px solid var(--border-color); margin:1.5rem 0;">
-          
-          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="package" style="width:18px;height:18px;"></i> 3. שירותים / מוצרים</h3>
-          ${listHtml(client.services, (s) => `<span><b>${s.name}:</b> ${s.description}</span>`)}
-          <hr style="border-top:1px solid var(--border-color); margin:1.5rem 0;">
-
-          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="award" style="width:18px;height:18px;"></i> 4. יתרונות העסק</h3>
-          ${listHtml(client.benefits, (b) => `<span><b>${b.title}:</b> ${b.description}</span>`)}
-          <hr style="border-top:1px solid var(--border-color); margin:1.5rem 0;">
-          
-          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="palette" style="width:18px;height:18px;"></i> 5. סגנון והשראה</h3>
-          ${line("טון כתיבה", client.tone || client.style?.tone)}
-          ${line("אורך טקסטים", client.contentLength || client.style?.contentLength)}
-          ${line("שפת האתר", client.language || client.style?.language)}
-          ${line("סגנון עיצוב", client.designStyle || client.inspiration?.designStyle)}
-          <hr style="border-top:1px solid var(--border-color); margin:1.5rem 0;">
-
-          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="phone-call" style="width:18px;height:18px;"></i> 6. פרטי התקשרות ורשתות</h3>
-          ${line("טלפון", client.phone || client.contact?.phone)}
-          ${line('דוא"ל', client.email || client.contact?.email)}
-          ${line("כתובת", client.address || client.contact?.address)}
-          ${line("פייסבוק", client.facebook || client.social?.facebook)}
-          ${line("אינסטגרם", client.instagram || client.social?.instagram)}
-          <hr style="border-top:1px solid var(--border-color); margin:1.5rem 0;">
-
-          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="message-square-quote" style="width:18px;height:18px;"></i> 7. המלצות</h3>
-          ${listHtml(client.testimonials, (t) => `<span><b>${t.name}:</b> ${t.text}</span>`)}
-          <hr style="border-top:1px solid var(--border-color); margin:1.5rem 0;">
-
-          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="search" style="width:18px;height:18px;"></i> 8. SEO ועמודים</h3>
-          ${line("עמודים מבוקשים", client.pages ? (Array.isArray(client.pages) ? client.pages.join(", ") : client.pages.selected?.join(", ")) : "")}
-          ${line("עמודים נוספים", client.otherPages)}
-          <hr style="border-top:1px solid var(--border-color); margin:1.5rem 0;">
-
-          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="file-text" style="width:18px;height:18px;"></i> 9. הערות נוספות</h3>
-          ${line("הערות", client.extraNotes)}
-        `;
-    if (window.lucide) window.lucide.createIcons();
-  }
-
-  function resetAIOutputPanel() {
-    document.getElementById("aiTabs").style.display = "none";
-    document.getElementById("aiTabs").innerHTML = "";
-    document.getElementById("aiContentDisplay").innerHTML = `
-            <div class="empty-state" style="padding:4rem 2rem;">
-              <i data-lucide="brain-circuit" style="width: 48px; height: 48px; color: var(--text-muted); opacity:0.5; margin-bottom:1rem;"></i>
-              <h3>התוכן השיווקי שלך מחכה</h3>
-              <p style="max-width:300px; margin:0 auto;">לחץ על הכפתור "צור תוכן" כדי לשלוח את הנתונים ל-AI ולקבל טקסטים שלמים ומסודרים לפי דפים וסקשנים.</p>
-            </div>
-        `;
-    document.getElementById("aiContentDisplay").classList.add("panel-body");
-    document.getElementById("aiContentDisplay").style.padding = "1.5rem";
-    if (window.lucide) window.lucide.createIcons();
-  }
-
-  // --- 4. לוגיקה ליצירת תוכן AI עם Gemini ---
-  const generateBtn = document.getElementById("generateContentBtn");
-  if (generateBtn) {
-    generateBtn.addEventListener("click", async () => {
-      if (!currentClientId) return alert("אנא בחר לקוח קודם");
-
-      const btnText = document.getElementById("btnText");
-      generateBtn.disabled = true;
-      btnText.innerText = "חושב ומייצר (Gemini)...";
-      resetAIOutputPanel();
-      document.getElementById("aiContentDisplay").innerHTML = `
-                <div class="empty-state" style="padding:4rem 2rem;">
-                    <i data-lucide="loader-2" class="lucide-spin text-primary" style="width: 48px; height: 48px; margin-bottom:1rem;"></i>
-                    <h3>מייצר תוכן עם Gemini</h3>
-                    <p style="max-width:300px; margin:0 auto;">אנא המתן. המערכת קוראת את האפיון, בונה פרומפט שיווקי ופונה ל-AI...</p>
-                </div>
-            `;
-      if (window.lucide) window.lucide.createIcons();
-
-      try {
-        const response = await fetch(
-          `/api/generate-content/${currentClientId}`,
-          { method: "POST" },
-        );
-        const result = await response.json();
-
-        if (result.success) {
-          currentAIContent = result.content;
-          renderAIContent();
-        } else {
-          alert("שגיאה ביצירת התוכן: " + result.message);
-          resetAIOutputPanel();
-        }
-      } catch (error) {
-        console.error("AI Fetch Error:", error);
-        alert(
-          "שגיאה! השרת כנראה קרס כי מפתח ה-GEMINI_API_KEY חסר בהגדרות הוסטינגר. אנא הוסף אותו ב-Environment Variables.",
-        );
-        resetAIOutputPanel();
-      } finally {
-        generateBtn.disabled = false;
-        btnText.innerText = "צור תוכן מחדש (AI)";
+    if (currentView === "raw") {
+      document.getElementById("rawPanel").style.display = "flex";
+      document.getElementById("aiPanel").style.display = "none";
+      renderRawData(client);
+    } else {
+      document.getElementById("rawPanel").style.display = "none";
+      document.getElementById("aiPanel").style.display = "flex";
+      if (currentAIContent) {
+        renderAITabs();
+      } else {
+        // מסך "צור תוכן" אם עדיין לא נוצר
+        document.getElementById("aiTabs").style.display = "none";
+        document.getElementById("aiContentDisplay").innerHTML = `
+                    <div style="text-align:center; padding: 4rem;">
+                        <i data-lucide="bot" style="width:64px; height:64px; color:var(--primary); margin-bottom:1rem;"></i>
+                        <h3>עדיין לא נוצר תוכן ללקוח זה</h3>
+                        <p style="color:var(--text-muted); margin-bottom: 2rem;">לחץ על הכפתור כדי לייצר טקסטים שיווקיים מושלמים.</p>
+                        <button class="btn btn-primary" style="font-size:1.1rem; padding: 0.8rem 2rem;" onclick="generateAI(event)">✨ צור תוכן עם Gemini</button>
+                    </div>
+                `;
         if (window.lucide) window.lucide.createIcons();
       }
-    });
+    }
   }
 
-  // --- 5. רינדור הלשוניות של ה-AI ---
-  function renderAIContent() {
-    if (
-      !currentAIContent ||
-      !Array.isArray(currentAIContent) ||
-      currentAIContent.length === 0
-    )
-      return;
+  // פונקציית היצירה (קוראת לשרת)
+  window.generateAI = async function (e) {
+    const btn = e.target.closest("button");
+    btn.disabled = true;
+    btn.innerHTML =
+      '<i data-lucide="loader-2" class="lucide-spin"></i> מייצר (כ-30 שניות)...';
+    if (window.lucide) window.lucide.createIcons();
 
+    try {
+      const res = await fetch(`/api/generate-content/${currentClientId}`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.success) {
+        currentAIContent = data.content;
+        clientsData[activeClientIndex].aiContent = data.content; // מעדכן זכרון מקומי
+        renderClientList(); // כדי להציג את כפתור השמירה
+        renderMainView(); // יציג את התוכן החדש
+      } else {
+        alert("שגיאה: " + data.message);
+      }
+    } catch (err) {
+      alert("שגיאת תקשורת.");
+    }
+  };
+
+  // פונקציית שמירת העריכות שלך ל-DB
+  window.saveEditedContent = async function (e) {
+    if (e) e.stopPropagation();
+    const btn = e.target.closest("button");
+    const ogHtml = btn.innerHTML;
+    btn.innerHTML =
+      '<i data-lucide="loader-2" class="lucide-spin"></i> שומר...';
+    if (window.lucide) window.lucide.createIcons();
+
+    try {
+      const res = await fetch(`/api/clients/${currentClientId}/ai-content`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: currentAIContent }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        clientsData[activeClientIndex].aiContent = currentAIContent;
+        btn.innerHTML = '<i data-lucide="check"></i> נשמר!';
+        btn.style.background = "#059669";
+        setTimeout(() => {
+          btn.innerHTML = ogHtml;
+          btn.style.background = "#10b981";
+          if (window.lucide) window.lucide.createIcons();
+        }, 2000);
+      }
+    } catch (err) {
+      alert("שגיאת תקשורת");
+      btn.innerHTML = ogHtml;
+    }
+  };
+
+  // ציור הלשוניות
+  function renderAITabs() {
     const tabsEl = document.getElementById("aiTabs");
-    const contentEl = document.getElementById("aiContentDisplay");
-
-    tabsEl.innerHTML = "";
     tabsEl.style.display = "flex";
-    contentEl.innerHTML = "";
-
+    tabsEl.innerHTML = "";
     currentAIContent.forEach((page, index) => {
       const btn = document.createElement("button");
       btn.className = `ai-tab-btn ${index === 0 ? "active" : ""}`;
       btn.innerHTML = `<i data-lucide="file-text" style="width:16px; height:16px;"></i> ${page.pageName}`;
-      btn.addEventListener("click", () => selectAIPage(index));
+      btn.addEventListener("click", () => {
+        document
+          .querySelectorAll(".ai-tab-btn")
+          .forEach((b, i) => b.classList.toggle("active", i === index));
+        renderAIPageSections(index);
+      });
       tabsEl.appendChild(btn);
     });
-
     renderAIPageSections(0);
-    if (window.lucide) window.lucide.createIcons();
   }
 
-  function selectAIPage(index) {
-    document.querySelectorAll(".ai-tab-btn").forEach((btn, i) => {
-      btn.classList.toggle("active", i === index);
-    });
-    renderAIPageSections(index);
-  }
-
-  function renderAIPageSections(index) {
+  // ציור הסקשנים והפיכתם לתיבות עריכה (Textareas)
+  function renderAIPageSections(pageIndex) {
     const contentEl = document.getElementById("aiContentDisplay");
     contentEl.innerHTML = "";
-    contentEl.classList.add("panel-body");
-    contentEl.style.padding = "1.5rem";
+    const page = currentAIContent[pageIndex];
 
-    const page = currentAIContent[index];
-    if (!page || !page.sections) return;
+    page.sections.forEach((section, secIndex) => {
+      const box = document.createElement("div");
+      box.className = "ai-section-box";
 
-    page.sections.forEach((section) => {
-      const sectionBox = document.createElement("div");
-      sectionBox.className = "ai-section-box";
-
-      sectionBox.innerHTML = `
-                <div class="ai-section-title">${section.sectionTitle}</div>
-                <div class="ai-section-content">${section.content}</div>
-                <button type="button" class="btn-icon btn-copy" title="העתק טקסט">
-                    <i data-lucide="copy" style="width:18px; height:18px;"></i>
-                </button>
+      // הכותרת וכפתור ההעתקה ברורים לחלוטין!
+      box.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <div style="font-weight:bold; font-size:1.1rem; color:var(--text-main);">${section.sectionTitle}</div>
+                    <button type="button" class="btn-outline btn-copy" style="opacity:1; padding:0.3rem 0.8rem; border-radius:0.5rem; font-size:0.9rem; display:flex; align-items:center; gap:0.4rem; background:var(--bg-card);">
+                        <i data-lucide="copy" style="width:16px; height:16px;"></i> העתק
+                    </button>
+                </div>
+                <textarea class="ai-textarea" data-page="${pageIndex}" data-sec="${secIndex}">${section.content}</textarea>
             `;
 
-      sectionBox.querySelector(".btn-copy").addEventListener("click", () => {
-        copyToClipboard(section.content, sectionBox.querySelector(".btn-copy"));
+      // אירוע הקלדה מעדכן את האובייקט בזמן אמת
+      box.querySelector("textarea").addEventListener("input", (e) => {
+        currentAIContent[pageIndex].sections[secIndex].content = e.target.value;
       });
 
-      contentEl.appendChild(sectionBox);
-    });
+      // אירוע העתקה
+      box.querySelector(".btn-copy").addEventListener("click", (e) => {
+        const textToCopy = box.querySelector("textarea").value;
+        copyToClipboard(textToCopy, e.target.closest("button"));
+      });
 
+      contentEl.appendChild(box);
+    });
     if (window.lucide) window.lucide.createIcons();
   }
 
   async function copyToClipboard(text, btnElement) {
     try {
       await navigator.clipboard.writeText(text);
-      const originalHtml = btnElement.innerHTML;
-      btnElement.innerHTML = `<i data-lucide="check" style="width:18px;height:18px;color:white;"></i>`;
-      btnElement.style.background = "var(--accent)";
-      btnElement.style.borderColor = "var(--accent)";
-      btnElement.style.opacity = "1";
+      const ogHtml = btnElement.innerHTML;
+      btnElement.innerHTML = `<i data-lucide="check" style="width:16px;height:16px;color:white;"></i> הועתק!`;
+      btnElement.style.background = "var(--primary)";
+      btnElement.style.color = "white";
       if (window.lucide) window.lucide.createIcons();
-
       setTimeout(() => {
-        btnElement.innerHTML = originalHtml;
-        btnElement.style.background = "transparent";
-        btnElement.style.borderColor = "var(--border-color)";
-        btnElement.style.opacity = "0.6";
+        btnElement.innerHTML = ogHtml;
+        btnElement.style.background = "var(--bg-card)";
+        btnElement.style.color = "var(--text-main)";
         if (window.lucide) window.lucide.createIcons();
       }, 1500);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-      alert("לא הצלחנו להעתיק את הטקסט. אנא העתק ידנית.");
+    } catch (e) {
+      alert("שגיאה בהעתקה");
     }
   }
 
-  // --- 6. מחיקה ---
-  function openDeleteModal(index, name, element) {
+  function renderRawData(client) {
+    const val = (v) =>
+      v
+        ? `<span>${v}</span>`
+        : '<span style="color:var(--text-muted); font-style:italic;">לא הוזן</span>';
+    const line = (label, value) =>
+      `<div class="data-line" style="margin-bottom:0.5rem;"><strong>${label}</strong> ${val(value)}</div>`;
+    const listHtml = (arr, renderFn) =>
+      !arr || !arr.length
+        ? val("")
+        : `<div style="display:flex; flex-direction:column; gap:0.5rem;">${arr.map(renderFn).join("")}</div>`;
+
+    document.getElementById("clientRawData").innerHTML = `
+          <h3 style="color:var(--primary); display:flex; gap:0.5rem;"><i data-lucide="info"></i> 1. כללי</h3>
+          ${line("שם האתר", client.siteName || client.general?.siteName)} ${line("דומיין", client.domain)}
+          <hr>
+          <h3 style="color:var(--primary); display:flex; gap:0.5rem;"><i data-lucide="briefcase"></i> 2. על העסק</h3>
+          ${line("תיאור", client.businessDescription)} ${line("קהל יעד", client.targetAudience)} ${line("ייחודיות", client.uniqueValue)}
+          <hr>
+          <h3 style="color:var(--primary); display:flex; gap:0.5rem;"><i data-lucide="package"></i> 3. שירותים</h3>
+          ${listHtml(client.services, (s) => `<span><b>${s.name}:</b> ${s.description}</span>`)}
+          <hr>
+          <h3 style="color:var(--primary); display:flex; gap:0.5rem;"><i data-lucide="award"></i> 4. יתרונות</h3>
+          ${listHtml(client.benefits, (b) => `<span><b>${b.title}:</b> ${b.description}</span>`)}
+          <hr>
+          <h3 style="color:var(--primary); display:flex; gap:0.5rem;"><i data-lucide="palette"></i> 5. סגנון</h3>
+          ${line("טון", client.tone)} ${line("שפה", client.language)} ${line("עיצוב", client.designStyle)}
+          <hr>
+          <h3 style="color:var(--primary); display:flex; gap:0.5rem;"><i data-lucide="phone"></i> 6. קשר</h3>
+          ${line("טלפון", client.phone)} ${line("כתובת", client.address)} ${line("מייל", client.email)}
+          <hr>
+          <h3 style="color:var(--primary); display:flex; gap:0.5rem;"><i data-lucide="message-square"></i> 7. המלצות</h3>
+          ${listHtml(client.testimonials, (t) => `<span><b>${t.name}:</b> ${t.text}</span>`)}
+          <hr>
+          <h3 style="color:var(--primary); display:flex; gap:0.5rem;"><i data-lucide="search"></i> 8. עמודים</h3>
+          ${line("מבוקשים", client.pages ? (Array.isArray(client.pages) ? client.pages.join(", ") : client.pages.selected?.join(", ")) : "")}
+          ${line("נוספים", client.otherPages)}
+        `;
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // מחיקה
+  window.openDeleteModal = function (index, name, element) {
     clientToDeleteIndex = index;
-    clientToDeleteElement = element;
     modalNameEl.innerText = name;
     modal.classList.add("open");
-  }
+  };
   window.closeDeleteModal = function () {
     modal.classList.remove("open");
   };
-  document.getElementById("confirmDeleteBtn").addEventListener("click", () => {
-    closeDeleteModal();
-    clientToDeleteElement.style.opacity = "0";
-    setTimeout(() => clientToDeleteElement.remove(), 300);
-    clientsData.splice(clientToDeleteIndex, 1);
-    if (clientToDeleteElement.classList.contains("active")) {
-      document.getElementById("welcomeState").style.display = "flex";
-      document.getElementById("splitView").style.display = "none";
-    }
-  });
+  document
+    .getElementById("confirmDeleteBtn")
+    .addEventListener("click", async () => {
+      closeDeleteModal();
+      clientsData.splice(clientToDeleteIndex, 1);
+      renderClientList();
+      document.getElementById("welcomeState").style.display = "block";
+      document.getElementById("rawPanel").style.display = "none";
+      document.getElementById("aiPanel").style.display = "none";
+    });
 
   fetchClients();
 });

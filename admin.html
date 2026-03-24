@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GenieSite Admin | לוח בקרה</title>
     <link rel="stylesheet" href="style.css" />
-    <script src="[https://unpkg.com/lucide@latest](https://unpkg.com/lucide@latest)"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
       body {
         margin: 0;
@@ -14,7 +14,7 @@
         overflow: hidden;
       }
       .sidebar {
-        width: 320px;
+        width: 340px;
         z-index: 10;
         flex-shrink: 0;
       }
@@ -59,27 +59,27 @@
         flex: 1;
         display: flex;
         flex-direction: column;
+        max-width: 1000px;
+        margin: 0 auto;
+        width: 100%;
       }
 
-      .split-view {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        height: 100%;
-        margin-bottom: 1rem;
-        overflow: hidden;
-      }
       .data-panel {
         height: 100%;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        background: var(--bg-card);
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
       }
       .panel-body {
         overflow-y: auto;
+        padding: 2rem;
       }
 
-      /* --- עיצוב לשוניות ה-AI --- */
+      /* עיצוב הלשוניות */
       .ai-tabs-container {
         padding: 1rem 1.5rem;
         border-bottom: 1px solid var(--border-color);
@@ -115,40 +115,33 @@
         box-shadow: var(--shadow-sm);
       }
 
-      /* --- עיצוב סקשנים ב-AI --- */
+      /* עיצוב תיבות העריכה של ה-AI */
       .ai-section-box {
         background: var(--bg-body);
         padding: 1.5rem;
         border-radius: var(--border-radius-md);
         border: 1px solid var(--border-color);
-        margin-bottom: 1.25rem;
-        position: relative;
+        margin-bottom: 1.5rem;
       }
-      .ai-section-title {
-        font-weight: 600;
+      .ai-textarea {
+        width: 100%;
+        min-height: 180px;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        background: var(--input-bg);
         color: var(--text-main);
-        margin-bottom: 0.75rem;
-        font-size: 1rem;
-      }
-      .ai-section-content {
-        color: var(--text-muted);
+        font-family: inherit;
         font-size: 0.95rem;
-        white-space: pre-line;
         line-height: 1.7;
+        resize: vertical;
+        transition: var(--transition);
+        margin-top: 0.5rem;
       }
-
-      /* כפתור העתקה אחיד כמו באדמין */
-      .btn-copy {
-        position: absolute;
-        top: 1rem;
-        left: 1rem;
-        opacity: 0.6;
-      }
-      .btn-copy:hover {
-        opacity: 1;
-        background: var(--primary);
-        color: white;
+      .ai-textarea:focus {
         border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
       }
 
       /* מודל מחיקה */
@@ -179,12 +172,6 @@
         width: 90%;
         text-align: center;
       }
-      .modal-actions {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        margin-top: 1.5rem;
-      }
     </style>
   </head>
   <body>
@@ -198,22 +185,7 @@
           >
         </div>
       </div>
-      <ul class="client-list" id="clientList">
-        <li class="client-item" style="justify-content: center">
-          <i data-lucide="loader-2" class="lucide-spin text-muted"></i>
-        </li>
-      </ul>
-      <div
-        style="
-          padding: 1rem;
-          text-align: center;
-          border-top: 1px solid var(--border-color);
-          font-size: 0.8rem;
-          color: var(--text-muted);
-        "
-      >
-        &copy; 2026 GenieSite By Meni Bazov
-      </div>
+      <ul class="client-list" id="clientList"></ul>
     </aside>
 
     <main class="dashboard-main">
@@ -252,13 +224,18 @@
       </header>
 
       <div class="content-area">
-        <div id="welcomeState" class="empty-state" style="margin-top: 10vh">
+        <div
+          id="welcomeState"
+          class="empty-state"
+          style="margin-top: 15vh; text-align: center"
+        >
           <div
             style="
               background: var(--border-color);
               padding: 1.5rem;
               border-radius: 50%;
               color: var(--text-muted);
+              display: inline-block;
               margin-bottom: 1rem;
             "
           >
@@ -268,64 +245,45 @@
             ></i>
           </div>
           <h2>ברוך הבא למערכת הניהול</h2>
-          <p>בחר לקוח מהתפריט בצד כדי לצפות בפרטים שלו וליצור עבורו תוכן.</p>
+          <p>
+            בחר לקוח מהתפריט בצד כדי לצפות באפיון וליצור עבורו תוכן אוטומטי.
+          </p>
         </div>
 
-        <div id="splitView" style="display: none; height: 100%">
-          <div class="split-view">
-            <div class="data-panel">
-              <div class="panel-header">
-                <span style="display: flex; align-items: center; gap: 0.5rem"
-                  ><i data-lucide="file-text" style="color: var(--primary)"></i>
-                  נתוני מקור (מהלקוח)</span
-                >
-              </div>
-              <div class="panel-body" id="clientRawData"></div>
-            </div>
-
-            <div class="data-panel" id="aiOutputPanel">
-              <div class="panel-header">
-                <span style="display: flex; align-items: center; gap: 0.5rem"
-                  ><i data-lucide="sparkles" style="color: #eab308"></i> תוצר
-                  AI</span
-                >
-                <button
-                  class="btn btn-primary"
-                  style="padding: 0.4rem 1rem; font-size: 0.85rem"
-                  id="generateContentBtn"
-                >
-                  <i data-lucide="bot"></i>
-                  <span id="btnText">צור תוכן עם Gemini</span>
-                </button>
-              </div>
-
-              <div
-                class="ai-tabs-container"
-                id="aiTabs"
-                style="display: none"
-              ></div>
-
-              <div class="panel-body" id="aiContentDisplay">
-                <div class="empty-state" style="padding: 4rem 2rem">
-                  <i
-                    data-lucide="brain-circuit"
-                    style="
-                      width: 48px;
-                      height: 48px;
-                      color: var(--text-muted);
-                      opacity: 0.5;
-                      margin-bottom: 1rem;
-                    "
-                  ></i>
-                  <h3>התוכן השיווקי שלך מחכה</h3>
-                  <p style="max-width: 300px; margin: 0 auto">
-                    לחץ על הכפתור "צור תוכן" כדי לשלוח את הנתונים ל-AI ולקבל
-                    טקסטים שלמים ומסודרים לפי דפים וסקשנים.
-                  </p>
-                </div>
-              </div>
-            </div>
+        <div id="rawPanel" class="data-panel" style="display: none">
+          <div
+            class="panel-header"
+            style="font-size: 1.2rem; color: var(--primary)"
+          >
+            <i data-lucide="file-text"></i> אפיון הלקוח במלואו
           </div>
+          <div class="panel-body" id="clientRawData"></div>
+        </div>
+
+        <div id="aiPanel" class="data-panel" style="display: none">
+          <div
+            class="panel-header"
+            style="
+              font-size: 1.2rem;
+              color: #eab308;
+              display: flex;
+              justify-content: space-between;
+            "
+          >
+            <span style="display: flex; align-items: center; gap: 0.5rem"
+              ><i data-lucide="sparkles"></i> תוצר AI ועריכה</span
+            >
+          </div>
+          <div
+            class="ai-tabs-container"
+            id="aiTabs"
+            style="display: none"
+          ></div>
+          <div
+            class="panel-body"
+            id="aiContentDisplay"
+            style="padding: 1.5rem"
+          ></div>
         </div>
       </div>
     </main>
@@ -343,14 +301,16 @@
           <i data-lucide="alert-triangle" style="width: 48px; height: 48px"></i>
         </div>
         <h3 style="color: var(--danger)">מחיקת לקוח לצמיתות</h3>
-        <p>
-          האם אתה בטוח שברצונך למחוק את
-          <strong id="modalClientName"></strong> מהמערכת?
-        </p>
-        <p class="text-muted" style="font-size: 0.85rem">
-          פעולה זו תמחק את כל המידע ולא ניתן יהיה לשחזרו.
-        </p>
-        <div class="modal-actions">
+        <p>האם למחוק את <strong id="modalClientName"></strong> מהמערכת?</p>
+        <div
+          class="modal-actions"
+          style="
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+          "
+        >
           <button class="btn btn-outline" onclick="closeDeleteModal()">
             ביטול
           </button>
@@ -366,5 +326,30 @@
     </div>
 
     <script src="adminScript.js"></script>
+    <script>
+      lucide.createIcons();
+      const themeToggle = document.getElementById("themeToggleAdmin");
+      const htmlElement = document.documentElement;
+      const themeIcon = document.getElementById("themeIcon");
+      const savedTheme = localStorage.getItem("genieTheme") || "light";
+      htmlElement.setAttribute("data-theme", savedTheme);
+      themeIcon.setAttribute(
+        "data-lucide",
+        savedTheme === "dark" ? "sun" : "moon",
+      );
+      lucide.createIcons();
+
+      themeToggle.addEventListener("click", () => {
+        const newTheme =
+          htmlElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+        htmlElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("genieTheme", newTheme);
+        themeIcon.setAttribute(
+          "data-lucide",
+          newTheme === "dark" ? "sun" : "moon",
+        );
+        lucide.createIcons();
+      });
+    </script>
   </body>
 </html>
