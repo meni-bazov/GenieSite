@@ -3,588 +3,429 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GenieSite - טופס אפיון</title>
+    <title>אפיון אתר | GenieSite</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      /* סידור אלמנטים דינמיים שמוזרקים מה-JS */
+      .row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      @media (min-width: 768px) {
+        .row.row-cols-2 {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    </style>
   </head>
   <body>
-    <nav class="navbar">
-      <div class="container nav-content">
-        <div class="brand-container">
-          <div class="brand">
-            <span class="genie-icon">🪄</span> Genie<span class="highlight"
-              >Site</span
-            >
-          </div>
-          <div class="brand-subtitle">By Meni Bazov</div>
-        </div>
-        <button class="btn btn-outline" id="themeToggle">🌙 מצב כהה</button>
+    <header class="topbar" style="padding: 1rem 5%">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-weight: bold;
+          font-size: 1.5rem;
+        "
+      >
+        <i data-lucide="wand-2" style="color: var(--primary)"></i> Genie<span
+          style="color: var(--primary)"
+          >Site</span
+        >
       </div>
-    </nav>
-
-    <header class="hero">
-      <div class="container text-center">
-        <h1>טופס אפיון ליצירת אתר</h1>
-        <p class="lead">
-          מלא/י את הפרטים הבאים כדי שנוכל לייצר תוכן מדויק, שיווקי ומותאם אישית
-          לאתר שלך.
-        </p>
-      </div>
+      <button
+        class="btn btn-outline"
+        id="themeToggle"
+        style="padding: 0.5rem 1rem"
+      >
+        <i data-lucide="moon" id="themeIcon"></i> מצב תצוגה
+      </button>
     </header>
 
     <main class="container">
-      <form id="clientForm" class="genie-form">
-        <div class="card">
-          <div class="card-header">
-            <h2><span class="step-num">1</span> פרטים כלליים</h2>
+      <div class="hero-section">
+        <h1>בואו נאפיין את האתר שלכם! 🚀</h1>
+        <p
+          class="text-muted"
+          style="font-size: 1.1rem; max-width: 600px; margin: 0 auto"
+        >
+          מלאו את הפרטים מטה בצורה המפורטת ביותר. המערכת החכמה שלנו תקרא את
+          הנתונים ותייצר עבורכם תוכן מותאם אישית.
+        </p>
+      </div>
+
+      <form id="clientForm">
+        <div class="form-section">
+          <div class="panel-header">
+            <span style="display: flex; align-items: center; gap: 0.5rem"
+              ><i data-lucide="info" style="color: var(--primary)"></i> פרטים
+              כלליים</span
+            >
           </div>
-          <div class="card-body row row-cols-2">
+          <div class="panel-body form-grid">
             <div class="form-group">
-              <label for="businessName"
-                >שם העסק <span class="required">*</span></label
-              >
+              <label>שם העסק / האתר *</label>
               <input
                 type="text"
-                id="businessName"
                 name="businessName"
                 class="form-control"
-                placeholder="לדוגמה: MB Lights"
                 required
+                placeholder="לדוגמה: סטודיו לצילום רועי"
               />
             </div>
             <div class="form-group">
-              <label for="domain">דומיין קיים / רצוי</label>
+              <label>דומיין (אם יש)</label>
               <input
                 type="text"
-                id="domain"
                 name="domain"
                 class="form-control"
                 placeholder="www.example.co.il"
               />
             </div>
-            <div class="form-group">
-              <label for="siteName">שם האתר</label>
+            <div class="form-group form-grid-full">
+              <label>סלוגן</label>
               <input
                 type="text"
-                id="siteName"
-                name="siteName"
-                class="form-control"
-                placeholder="אם שונה משם העסק"
-              />
-            </div>
-            <div class="form-group">
-              <label for="slogan">סלוגן</label>
-              <input
-                type="text"
-                id="slogan"
                 name="slogan"
                 class="form-control"
-                placeholder="המשפט שמלווה את העסק"
+                placeholder="לדוגמה: תופסים את הרגעים היפים בחיים"
               />
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h2><span class="step-num">2</span> על העסק</h2>
+        <div class="form-section">
+          <div class="panel-header">
+            <span style="display: flex; align-items: center; gap: 0.5rem"
+              ><i data-lucide="briefcase" style="color: var(--primary)"></i> על
+              העסק</span
+            >
           </div>
-          <div class="card-body">
-            <div class="form-group">
-              <label for="businessDescription">מה העסק עושה?</label>
+          <div class="panel-body form-grid">
+            <div class="form-group form-grid-full">
+              <label>תיאור קצר של העסק *</label>
               <textarea
-                id="businessDescription"
                 name="businessDescription"
                 class="form-control"
-                rows="4"
-                placeholder="ספר/י על העסק, התחום, השירותים או המוצרים שלך"
+                rows="3"
+                required
+                placeholder="ספרו לנו קצת על העסק, מה אתם עושים, כמה זמן אתם קיימים..."
               ></textarea>
             </div>
             <div class="form-group">
-              <label for="targetAudience">מי קהל היעד שלך?</label>
-              <textarea
-                id="targetAudience"
+              <label>מי קהל היעד שלכם?</label>
+              <input
+                type="text"
                 name="targetAudience"
                 class="form-control"
-                rows="3"
-                placeholder="לדוגמה: בעלי עסקים, זוגות צעירים, לקוחות פרטיים..."
-              ></textarea>
+                placeholder="לדוגמה: זוגות מתחתנים, בעלי עסקים, הורים..."
+              />
             </div>
             <div class="form-group">
-              <label for="uniqueValue">מה מייחד אותך מהמתחרים?</label>
-              <textarea
-                id="uniqueValue"
+              <label>מה הייחודיות שלכם? (למה דווקא אתם?)</label>
+              <input
+                type="text"
                 name="uniqueValue"
                 class="form-control"
-                rows="3"
-                placeholder="לדוגמה: שירות אישי, ניסיון רב, זמינות גבוהה..."
-              ></textarea>
+                placeholder="לדוגמה: שירות אישי, מחיר אטרקטיבי, ניסיון של 20 שנה..."
+              />
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-header flex-between">
-            <h2><span class="step-num">3</span> שירותים ומוצרים</h2>
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-primary"
-              id="addServiceBtn"
+        <div class="form-section">
+          <div class="panel-header">
+            <span style="display: flex; align-items: center; gap: 0.5rem"
+              ><i data-lucide="package" style="color: var(--primary)"></i>
+              שירותים / מוצרים מרכזיים</span
             >
-              + הוסף שירות
+          </div>
+          <div class="panel-body">
+            <p
+              class="text-muted"
+              style="margin-bottom: 1rem; font-size: 0.9rem"
+            >
+              הוסיפו את השירותים או המוצרים העיקריים שאתם מציעים.
+            </p>
+            <div id="servicesWrapper"></div>
+            <button type="button" class="btn btn-outline" id="addServiceBtn">
+              <i data-lucide="plus"></i> הוסף שירות
             </button>
           </div>
-          <div class="card-body" id="servicesWrapper">
-            <div class="dynamic-item">
-              <div class="item-actions">
-                <button
-                  type="button"
-                  class="btn-icon remove-item-btn"
-                  title="מחק"
-                >
-                  🗑️
-                </button>
-              </div>
-              <div class="row row-cols-2">
-                <div class="form-group">
-                  <label>שם שירות / מוצר</label>
-                  <input
-                    type="text"
-                    name="serviceName[]"
-                    class="form-control"
-                    placeholder="לדוגמה: בניית אתרי תדמית"
-                  />
-                </div>
-                <div class="form-group">
-                  <label>תיאור קצר</label>
-                  <input
-                    type="text"
-                    name="serviceDescription[]"
-                    class="form-control"
-                    placeholder="תיאור קצר של השירות או המוצר"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div class="card">
-          <div class="card-header flex-between">
-            <h2>
-              <span class="step-num">4</span> יתרונות בולטים (Features /
-              Benefits)
-            </h2>
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-primary"
-              id="addBenefitBtn"
+        <div class="form-section">
+          <div class="panel-header">
+            <span style="display: flex; align-items: center; gap: 0.5rem"
+              ><i data-lucide="award" style="color: var(--primary)"></i> למה
+              כדאי לבחור בכם? (יתרונות)</span
             >
-              + הוסף יתרון
+          </div>
+          <div class="panel-body">
+            <div id="benefitsWrapper"></div>
+            <button type="button" class="btn btn-outline" id="addBenefitBtn">
+              <i data-lucide="plus"></i> הוסף יתרון
             </button>
           </div>
-          <div class="card-body" id="benefitsWrapper">
-            <div class="dynamic-item">
-              <div class="item-actions">
-                <button
-                  type="button"
-                  class="btn-icon remove-item-btn"
-                  title="מחק"
-                >
-                  🗑️
-                </button>
-              </div>
-              <div class="row row-cols-2">
-                <div class="form-group">
-                  <label>כותרת היתרון</label>
-                  <input
-                    type="text"
-                    name="benefitTitle[]"
-                    class="form-control"
-                    placeholder="לדוגמה: שירות מהיר"
-                  />
-                </div>
-                <div class="form-group">
-                  <label>תיאור קצר</label>
-                  <input
-                    type="text"
-                    name="benefitDescription[]"
-                    class="form-control"
-                    placeholder="לדוגמה: מענה מהיר וליווי אישי..."
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h2><span class="step-num">5</span> טון וסגנון</h2>
+        <div class="form-section">
+          <div class="panel-header">
+            <span style="display: flex; align-items: center; gap: 0.5rem"
+              ><i data-lucide="palette" style="color: var(--primary)"></i> טון,
+              סגנון ועיצוב</span
+            >
           </div>
-          <div class="card-body row row-cols-2">
+          <div class="panel-body form-grid">
             <div class="form-group">
-              <label for="tone">טון כתיבה רצוי</label>
-              <select id="tone" name="tone" class="form-control">
-                <option value="">בחר/י אפשרות</option>
-                <option value="formal">רשמי</option>
-                <option value="friendly">ידידותי</option>
-                <option value="luxury">יוקרתי</option>
-                <option value="young">צעיר</option>
-                <option value="professional">מקצועי</option>
+              <label>טון כתיבה רצוי</label>
+              <select name="tone" class="form-control">
+                <option value="מקצועי ורשמי">
+                  מקצועי ורשמי (עורכי דין, רואי חשבון)
+                </option>
+                <option value="קליל וחברי" selected>
+                  קליל וחברי (לייף סטייל, צילום, אימון)
+                </option>
+                <option value="מכירתי ומניע לפעולה">
+                  מכירתי ומניע לפעולה (חנויות, מבצעים)
+                </option>
+                <option value="יוקרתי ואלגנטי">
+                  יוקרתי ואלגנטי (תכשיטים, אדריכלות)
+                </option>
               </select>
             </div>
             <div class="form-group">
-              <label for="contentLength">אורך תוכן רצוי</label>
-              <select
-                id="contentLength"
-                name="contentLength"
-                class="form-control"
-              >
-                <option value="">בחר/י אפשרות</option>
-                <option value="short">קצר</option>
-                <option value="medium">בינוני</option>
-                <option value="long">מפורט</option>
+              <label>שפת האתר</label>
+              <select name="language" class="form-control">
+                <option value="עברית (זכר)">עברית - פנייה בלשון זכר</option>
+                <option value="עברית (נקבה)">עברית - פנייה בלשון נקבה</option>
+                <option value="עברית (רבים)" selected>
+                  עברית - פנייה בלשון רבים (מומלץ)
+                </option>
+                <option value="אנגלית">אנגלית</option>
               </select>
             </div>
-            <div class="form-group">
-              <label for="language">שפת האתר</label>
-              <select id="language" name="language" class="form-control">
-                <option value="">בחר/י שפה</option>
-                <option value="he">עברית</option>
-                <option value="en">אנגלית</option>
-                <option value="both">עברית + אנגלית</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h2><span class="step-num">6</span> השראה וסגנון עיצובי</h2>
-          </div>
-          <div class="card-body row row-cols-2">
-            <div class="form-group">
-              <label for="referenceSites">אתרים לדוגמה שאהבת</label>
-              <textarea
-                id="referenceSites"
-                name="referenceSites"
-                class="form-control"
-                rows="1"
-                placeholder="אפשר להדביק קישורים"
-              ></textarea>
-            </div>
-            <div class="form-group">
-              <label for="designStyle">סגנון עיצוב רצוי</label>
-              <select id="designStyle" name="designStyle" class="form-control">
-                <option value="">בחר/י סגנון</option>
-                <option value="modern">מודרני</option>
-                <option value="clean">נקי</option>
-                <option value="dark">כהה</option>
-                <option value="luxury">יוקרתי</option>
-                <option value="minimalist">מינימליסטי</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h2><span class="step-num">7</span> לוגו ומיתוג</h2>
-          </div>
-          <div class="card-body row row-cols-2">
-            <div class="form-group">
-              <label for="logoFile">העלאת לוגו</label>
-              <input
-                type="file"
-                id="logoFile"
-                name="logoFile"
-                class="form-control"
-                accept="image/*,.svg,.pdf"
-              />
-            </div>
-            <div class="form-group">
-              <label for="brandColors">צבעי מותג</label>
+            <div class="form-group form-grid-full">
+              <label>צבעי מותג / סגנון עיצוב מועדף</label>
               <input
                 type="text"
-                id="brandColors"
-                name="brandColors"
+                name="designStyle"
                 class="form-control"
-                placeholder="לדוגמה: #000000, #FFBC28"
-              />
-            </div>
-            <div class="form-group">
-              <label for="preferredFont">פונט מועדף</label>
-              <input
-                type="text"
-                id="preferredFont"
-                name="preferredFont"
-                class="form-control"
-                placeholder="אם יש העדפה"
+                placeholder="לדוגמה: מינימליסטי, שחור לבן ונגיעות של זהב..."
               />
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h2><span class="step-num">8</span> פרטי התקשרות</h2>
+        <div class="form-section">
+          <div class="panel-header">
+            <span style="display: flex; align-items: center; gap: 0.5rem"
+              ><i data-lucide="phone-call" style="color: var(--primary)"></i>
+              פרטי התקשרות ורשתות</span
+            >
           </div>
-          <div class="card-body row row-cols-2">
+          <div class="panel-body form-grid">
             <div class="form-group">
-              <label for="phone">טלפון</label>
+              <label>טלפון</label>
               <input
-                type="text"
-                id="phone"
+                type="tel"
                 name="phone"
                 class="form-control"
-                placeholder="טלפון ליצירת קשר"
+                placeholder="050-0000000"
               />
             </div>
             <div class="form-group">
-              <label for="email">אימייל</label>
+              <label>אימייל</label>
               <input
                 type="email"
-                id="email"
                 name="email"
                 class="form-control"
-                placeholder="you@example.com"
+                placeholder="example@mail.com"
               />
             </div>
             <div class="form-group">
-              <label for="address">כתובת</label>
+              <label>כתובת (אם יש קבלת קהל)</label>
               <input
                 type="text"
-                id="address"
                 name="address"
                 class="form-control"
-                placeholder="כתובת העסק"
+                placeholder="רחוב, עיר"
               />
             </div>
             <div class="form-group">
-              <label for="hours">שעות פעילות</label>
+              <label>קישור לפייסבוק / אינסטגרם</label>
               <input
                 type="text"
-                id="hours"
-                name="hours"
+                name="social"
                 class="form-control"
-                placeholder="לדוגמה: א'-ה' 09:00-18:00"
+                placeholder="https://instagram.com/..."
               />
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h2><span class="step-num">9</span> רשתות חברתיות</h2>
+        <div class="form-section">
+          <div class="panel-header">
+            <span style="display: flex; align-items: center; gap: 0.5rem"
+              ><i
+                data-lucide="message-square-quote"
+                style="color: var(--primary)"
+              ></i>
+              המלצות מלקוחות (לא חובה)</span
+            >
           </div>
-          <div class="card-body row row-cols-2">
-            <div class="form-group">
-              <label for="facebook">פייסבוק</label>
-              <input
-                type="url"
-                id="facebook"
-                name="facebook"
-                class="form-control"
-                placeholder="קישור לפייסבוק"
-              />
-            </div>
-            <div class="form-group">
-              <label for="instagram">אינסטגרם</label>
-              <input
-                type="url"
-                id="instagram"
-                name="instagram"
-                class="form-control"
-                placeholder="קישור לאינסטגרם"
-              />
-            </div>
-            <div class="form-group">
-              <label for="linkedin">לינקדאין</label>
-              <input
-                type="url"
-                id="linkedin"
-                name="linkedin"
-                class="form-control"
-                placeholder="קישור ללינקדאין"
-              />
-            </div>
-            <div class="form-group">
-              <label for="tiktok">טיקטוק</label>
-              <input
-                type="url"
-                id="tiktok"
-                name="tiktok"
-                class="form-control"
-                placeholder="קישור לטיקטוק"
-              />
-            </div>
-            <div class="form-group">
-              <label for="youtube">יוטיוב</label>
-              <input
-                type="url"
-                id="youtube"
-                name="youtube"
-                class="form-control"
-                placeholder="קישור ליוטיוב"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header flex-between">
-            <h2><span class="step-num">10</span> המלצות לקוחות</h2>
+          <div class="panel-body">
+            <div id="testimonialsWrapper"></div>
             <button
               type="button"
-              class="btn btn-sm btn-outline-primary"
+              class="btn btn-outline"
               id="addTestimonialBtn"
             >
-              + הוסף המלצה
+              <i data-lucide="plus"></i> הוסף המלצה
             </button>
           </div>
-          <div class="card-body" id="testimonialsWrapper">
-            <div class="dynamic-item">
-              <div class="item-actions">
-                <button
-                  type="button"
-                  class="btn-icon remove-item-btn"
-                  title="מחק"
-                >
-                  🗑️
-                </button>
-              </div>
-              <div class="row">
-                <div class="form-group">
-                  <label>שם הממליץ</label>
-                  <input
-                    type="text"
-                    name="testimonialName[]"
-                    class="form-control"
-                    placeholder="לדוגמה: ישראל ישראלי"
-                  />
-                </div>
-                <div class="form-group">
-                  <label>ההמלצה עצמה</label>
-                  <textarea
-                    name="testimonialText[]"
-                    class="form-control"
-                    rows="2"
-                    placeholder="מה הלקוח כתב?"
-                  ></textarea>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h2><span class="step-num">11</span> קידום אתרים (SEO)</h2>
+        <div class="form-section">
+          <div class="panel-header">
+            <span style="display: flex; align-items: center; gap: 0.5rem"
+              ><i data-lucide="layout" style="color: var(--primary)"></i> אילו
+              עמודים תרצו באתר?</span
+            >
           </div>
-          <div class="card-body row row-cols-2">
-            <div class="form-group">
-              <label for="seoKeywords">מילות מפתח חשובות</label>
-              <textarea
-                id="seoKeywords"
-                name="seoKeywords"
-                class="form-control"
-                rows="2"
-                placeholder="לדוגמה: תאורת במה, פנסים חכמים..."
-              ></textarea>
+          <div class="panel-body">
+            <div
+              style="
+                display: flex;
+                gap: 1.5rem;
+                flex-wrap: wrap;
+                margin-bottom: 1.5rem;
+              "
+            >
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  cursor: pointer;
+                "
+                ><input
+                  type="checkbox"
+                  name="pages[]"
+                  value="דף הבית"
+                  checked
+                />
+                דף הבית</label
+              >
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  cursor: pointer;
+                "
+                ><input type="checkbox" name="pages[]" value="אודות" checked />
+                אודות</label
+              >
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  cursor: pointer;
+                "
+                ><input
+                  type="checkbox"
+                  name="pages[]"
+                  value="שירותים"
+                  checked
+                />
+                שירותים / מוצרים</label
+              >
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  cursor: pointer;
+                "
+                ><input type="checkbox" name="pages[]" value="המלצות" />
+                המלצות</label
+              >
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  cursor: pointer;
+                "
+                ><input
+                  type="checkbox"
+                  name="pages[]"
+                  value="צור קשר"
+                  checked
+                />
+                צור קשר</label
+              >
             </div>
             <div class="form-group">
-              <label for="serviceArea">אזור פעילות</label>
+              <label>עמודים נוספים?</label>
               <input
                 type="text"
-                id="serviceArea"
-                name="serviceArea"
-                class="form-control"
-                placeholder="לדוגמה: תל אביב, מרכז, כל הארץ"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h2><span class="step-num">12</span> עמודים מבוקשים באתר</h2>
-          </div>
-          <div class="card-body">
-            <div class="checkbox-grid">
-              <label class="custom-checkbox">
-                <input type="checkbox" name="pages[]" value="home" checked />
-                <span class="checkmark"></span> דף בית
-              </label>
-              <label class="custom-checkbox">
-                <input type="checkbox" name="pages[]" value="about" />
-                <span class="checkmark"></span> אודות
-              </label>
-              <label class="custom-checkbox">
-                <input type="checkbox" name="pages[]" value="services" />
-                <span class="checkmark"></span> שירותים
-              </label>
-              <label class="custom-checkbox">
-                <input type="checkbox" name="pages[]" value="products" />
-                <span class="checkmark"></span> מוצרים / חנות
-              </label>
-              <label class="custom-checkbox">
-                <input type="checkbox" name="pages[]" value="faq" />
-                <span class="checkmark"></span> שאלות נפוצות
-              </label>
-              <label class="custom-checkbox">
-                <input type="checkbox" name="pages[]" value="contact" />
-                <span class="checkmark"></span> צור קשר
-              </label>
-              <label class="custom-checkbox">
-                <input type="checkbox" name="pages[]" value="blog" />
-                <span class="checkmark"></span> בלוג
-              </label>
-            </div>
-            <div class="form-group mt-4">
-              <label for="otherPages">עמודים נוספים</label>
-              <input
-                type="text"
-                id="otherPages"
                 name="otherPages"
                 class="form-control"
-                placeholder="אם יש עמודים נוספים שתרצה/י"
+                placeholder="לדוגמה: בלוג, מחירון, תקנון..."
               />
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h2><span class="step-num">13</span> הערות נוספות</h2>
-          </div>
-          <div class="card-body">
-            <div class="form-group">
-              <label for="extraNotes">כל דבר נוסף שחשוב לך שנדע</label>
-              <textarea
-                id="extraNotes"
-                name="extraNotes"
-                class="form-control"
-                rows="4"
-                placeholder="דגשים, בקשות מיוחדות, הערות כלליות"
-              ></textarea>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-actions text-center" style="margin-bottom: 30px">
-          <button type="submit" class="btn btn-primary btn-lg">
-            ✨ שלח לאפיון ויצירת תוכן
+        <div style="text-align: center; margin-top: 3rem; margin-bottom: 5rem">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            style="
+              font-size: 1.2rem;
+              padding: 1rem 3rem;
+              box-shadow: var(--shadow-md);
+            "
+          >
+            <i data-lucide="send"></i> שלח אפיון וצא לדרך!
           </button>
         </div>
       </form>
     </main>
 
-    <footer class="site-footer">
-      <div class="container text-center">
-        <p>&copy; 2026 GenieSite By Meni Bazov. All rights reserved.</p>
-      </div>
-    </footer>
+    <script>
+      lucide.createIcons();
+      const themeToggle = document.getElementById("themeToggle");
+      const htmlElement = document.documentElement;
+      const themeIcon = document.getElementById("themeIcon");
 
+      const savedTheme = localStorage.getItem("genieTheme") || "light";
+      htmlElement.setAttribute("data-theme", savedTheme);
+      themeIcon.setAttribute(
+        "data-lucide",
+        savedTheme === "dark" ? "sun" : "moon",
+      );
+      lucide.createIcons();
+
+      themeToggle.addEventListener("click", () => {
+        const newTheme =
+          htmlElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+        htmlElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("genieTheme", newTheme);
+        themeIcon.setAttribute(
+          "data-lucide",
+          newTheme === "dark" ? "sun" : "moon",
+        );
+        lucide.createIcons();
+      });
+    </script>
     <script src="script.js"></script>
   </body>
 </html>
