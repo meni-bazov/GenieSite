@@ -219,15 +219,34 @@
     <main class="dashboard-main">
       <header class="topbar">
         <h1 id="topbarTitle" style="margin: 0; font-size: 1.4rem">לוח בקרה</h1>
-        <div style="display: flex; align-items: center; gap: 1rem">
-          <span style="font-weight: 500">שלום, מני Bazov</span>
+        <div style="display: flex; align-items: center; gap: 1.5rem">
+          <span style="font-weight: 500; color: var(--text-muted)"
+            >שלום, מני Bazov</span
+          >
           <button
-            class="btn btn-outline"
             id="themeToggleAdmin"
             type="button"
-            style="padding: 0.5rem 1rem"
+            style="
+              background: var(--bg-body);
+              border: 1px solid var(--border-color);
+              color: var(--text-main);
+              padding: 0.5rem 1rem;
+              border-radius: var(--border-radius-md);
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              cursor: pointer;
+              font-weight: 500;
+              transition: var(--transition);
+              box-shadow: var(--shadow-sm);
+            "
           >
-            <i data-lucide="moon" id="themeIcon"></i> מצב תצוגה
+            <i
+              data-lucide="moon"
+              id="themeIcon"
+              style="width: 18px; height: 18px"
+            ></i>
+            מצב תצוגה
           </button>
         </div>
       </header>

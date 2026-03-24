@@ -49,14 +49,14 @@ function buildMasterPrompt(clientData) {
 טון כתיבה נדרש: ${tone}. שפת כתיבה: ${lang}. 
 משימה: צור תוכן שלם לאתר אינטרנט הכולל את הדפים הבאים: ${pagesList}.
 
-החזר את התשובה אך ורק במבנה המדויק הבא של מערך (Array) של אובייקטים:
+החזר את התשובה אך ורק במבנה המדויק הבא של מערך (Array) של אובייקטים ב-JSON:
 [
   {
-    "pageName": "שם הדף",
+    "pageName": "שם הדף (לדוגמה: דף הבית)",
     "sections": [
       {
-        "sectionTitle": "שם הסקשן",
-        "content": "התוכן המלא"
+        "sectionTitle": "שם הסקשן (לדוגמה: באנר ראשי)",
+        "content": "התוכן המלא כאן"
       }
     ]
   }
@@ -67,7 +67,6 @@ function buildMasterPrompt(clientData) {
 
 app.post("/api/generate-content/:id", async (req, res) => {
   try {
-    // בדיקה שמפתח ה-API קיים בהוסטינגר
     if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({
         success: false,
@@ -84,9 +83,9 @@ app.post("/api/generate-content/:id", async (req, res) => {
     console.log(`🧠 Generating AI content for: ${client.data.businessName}`);
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // אכיפה נוקשה של גוגל להחזיר אך ורק JSON תקין
+    // שינוי קריטי למודל החדש והפעיל של גוגל:
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" },
     });
 
@@ -94,14 +93,12 @@ app.post("/api/generate-content/:id", async (req, res) => {
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
-    // המרה בטוחה של הנתונים
     const generatedContent = JSON.parse(responseText);
 
     console.log("✅ Content generated successfully by Gemini!");
     res.json({ success: true, content: generatedContent });
   } catch (error) {
     console.error("❌ AI Generation error:", error);
-    // שולח למסך שלך את השגיאה המדויקת כדי שנדע מה לתקן!
     res
       .status(500)
       .json({ success: false, message: error.message || "שגיאת שרת פנימית" });
