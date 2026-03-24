@@ -1,21 +1,33 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // --- 1. ניהול מצב לילה/יום ---
+  // --- 1. הפעלת אייקונים וניהול מצב לילה ---
+  lucide.createIcons();
+
   const themeToggle = document.getElementById("themeToggle");
   const htmlElement = document.documentElement;
+  const themeIcon = document.getElementById("themeIcon");
+
   const savedTheme = localStorage.getItem("genieTheme") || "light";
-
   htmlElement.setAttribute("data-theme", savedTheme);
-  if (themeToggle) {
-    themeToggle.innerText =
-      savedTheme === "dark" ? "☀️ מצב בהיר" : "🌙 מצב כהה";
+  if (themeIcon)
+    themeIcon.setAttribute(
+      "data-lucide",
+      savedTheme === "dark" ? "sun" : "moon",
+    );
+  lucide.createIcons();
 
-    themeToggle.addEventListener("click", () => {
+  if (themeToggle) {
+    themeToggle.addEventListener("click", (e) => {
+      e.preventDefault(); // מונע מהכפתור לנסות לשלוח את הטופס בטעות
       const newTheme =
         htmlElement.getAttribute("data-theme") === "light" ? "dark" : "light";
       htmlElement.setAttribute("data-theme", newTheme);
       localStorage.setItem("genieTheme", newTheme);
-      themeToggle.innerText =
-        newTheme === "dark" ? "☀️ מצב בהיר" : "🌙 מצב כהה";
+      if (themeIcon)
+        themeIcon.setAttribute(
+          "data-lucide",
+          newTheme === "dark" ? "sun" : "moon",
+        );
+      lucide.createIcons();
     });
   }
 
@@ -28,17 +40,28 @@ document.addEventListener("DOMContentLoaded", () => {
     newItem.innerHTML = htmlContent;
     newItem.style.opacity = "0";
     wrapper.appendChild(newItem);
+
+    // קריטי: לרנדר את האייקון החדש של הפח שהרגע הוספנו!
+    if (window.lucide) window.lucide.createIcons();
+
     setTimeout(() => (newItem.style.opacity = "1"), 10);
   }
+
+  // כפתור פח אחיד כמו באדמין
+  const deleteBtnHtml = `
+    <div class="item-actions">
+      <button type="button" class="btn-icon remove-item-btn" title="מחק">
+        <i data-lucide="trash-2" style="width:18px;height:18px; pointer-events:none;"></i>
+      </button>
+    </div>
+  `;
 
   // הוספת שירות
   const addServiceBtn = document.getElementById("addServiceBtn");
   if (addServiceBtn) {
     addServiceBtn.addEventListener("click", () => {
       const content = `
-        <div class="item-actions">
-          <button type="button" class="btn-icon remove-item-btn" title="מחק">🗑️</button>
-        </div>
+        ${deleteBtnHtml}
         <div class="row row-cols-2">
           <div class="form-group">
             <label>שם שירות / מוצר</label>
@@ -59,9 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (addBenefitBtn) {
     addBenefitBtn.addEventListener("click", () => {
       const content = `
-        <div class="item-actions">
-          <button type="button" class="btn-icon remove-item-btn" title="מחק">🗑️</button>
-        </div>
+        ${deleteBtnHtml}
         <div class="row row-cols-2">
           <div class="form-group">
             <label>כותרת היתרון</label>
@@ -82,9 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (addTestimonialBtn) {
     addTestimonialBtn.addEventListener("click", () => {
       const content = `
-        <div class="item-actions">
-          <button type="button" class="btn-icon remove-item-btn" title="מחק">🗑️</button>
-        </div>
+        ${deleteBtnHtml}
         <div class="row">
           <div class="form-group">
             <label>שם הממליץ</label>
@@ -100,12 +119,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // מחיקת שדות (האזנה לכל כפתורי הפח)
+  // מחיקת שדות דינמיים
   document.addEventListener("click", (e) => {
-    if (e.target.classList.contains("remove-item-btn")) {
-      const itemToDrop = e.target.closest(".dynamic-item");
-      itemToDrop.style.opacity = "0";
-      setTimeout(() => itemToDrop.remove(), 300);
+    // מזהה לחיצה על כפתור המחיקה (או על האייקון שבתוכו)
+    if (e.target.closest(".remove-item-btn")) {
+      const btn = e.target.closest(".remove-item-btn");
+      const itemToDrop = btn.closest(".dynamic-item");
+      if (itemToDrop) {
+        itemToDrop.style.opacity = "0";
+        setTimeout(() => itemToDrop.remove(), 300);
+      }
     }
   });
 
@@ -113,44 +136,28 @@ document.addEventListener("DOMContentLoaded", () => {
   function collectFormData(formElement) {
     const formData = new FormData(formElement);
 
-    // איסוף השדות הרגילים
     const data = {
       businessName: formData.get("businessName"),
-      siteName: formData.get("siteName"),
       domain: formData.get("domain"),
       slogan: formData.get("slogan"),
       businessDescription: formData.get("businessDescription"),
       targetAudience: formData.get("targetAudience"),
       uniqueValue: formData.get("uniqueValue"),
       tone: formData.get("tone"),
-      contentLength: formData.get("contentLength"),
       language: formData.get("language"),
-      referenceSites: formData.get("referenceSites"),
       designStyle: formData.get("designStyle"),
-      brandColors: formData.get("brandColors"),
-      preferredFont: formData.get("preferredFont"),
       phone: formData.get("phone"),
       email: formData.get("email"),
       address: formData.get("address"),
-      hours: formData.get("hours"),
-      facebook: formData.get("facebook"),
-      instagram: formData.get("instagram"),
-      linkedin: formData.get("linkedin"),
-      tiktok: formData.get("tiktok"),
-      youtube: formData.get("youtube"),
-      seoKeywords: formData.get("seoKeywords"),
-      serviceArea: formData.get("serviceArea"),
+      social: formData.get("social"),
       pages: formData.getAll("pages[]"),
       otherPages: formData.get("otherPages"),
-      extraNotes: formData.get("extraNotes"),
 
-      // הכנת מערכים לשדות הדינמיים
       services: [],
       benefits: [],
       testimonials: [],
     };
 
-    // איסוף שירותים
     const serviceNames = formData.getAll("serviceName[]");
     const serviceDescs = formData.getAll("serviceDescription[]");
     for (let i = 0; i < serviceNames.length; i++) {
@@ -162,7 +169,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // איסוף יתרונות
     const benefitTitles = formData.getAll("benefitTitle[]");
     const benefitDescs = formData.getAll("benefitDescription[]");
     for (let i = 0; i < benefitTitles.length; i++) {
@@ -174,7 +180,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // איסוף המלצות
     const testNames = formData.getAll("testimonialName[]");
     const testTexts = formData.getAll("testimonialText[]");
     for (let i = 0; i < testNames.length; i++) {
@@ -192,30 +197,26 @@ document.addEventListener("DOMContentLoaded", () => {
     clientForm.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      // שימוש בפונקציה שאוספת את הנתונים
       const data = collectFormData(event.target);
 
-      // שינוי כפתור השליחה כדי שהלקוח יראה שזה טוען
       const submitBtn = event.target.querySelector('button[type="submit"]');
-      const originalText = submitBtn.innerText;
-      submitBtn.innerText = "שולח נתונים... ⏳";
+      const originalHtml = submitBtn.innerHTML;
+      submitBtn.innerHTML =
+        '<i data-lucide="loader-2" class="lucide-spin"></i> שולח נתונים...';
+      if (window.lucide) window.lucide.createIcons();
       submitBtn.disabled = true;
 
       try {
-        // שליחת הנתונים לנתיב ה-API בשרת שלנו
         const response = await fetch("/api/submit-form", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
 
         const result = await response.json();
 
         if (result.success) {
-          alert("✨ מעולה! הנתונים נשלחו ונשמרו בהצלחה במערכת GenieSite.");
-          // אפשר לאפס את הטופס אחרי שליחה מוצלחת
+          alert("✨ הנתונים נשלחו בהצלחה! ניצור איתך קשר בהקדם.");
           event.target.reset();
         } else {
           alert("שגיאה: " + result.message);
@@ -224,8 +225,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Error:", error);
         alert("הייתה בעיה בתקשורת מול השרת. אנא נסה שוב.");
       } finally {
-        // החזרת הכפתור למצב רגיל
-        submitBtn.innerText = originalText;
+        submitBtn.innerHTML = originalHtml;
+        if (window.lucide) window.lucide.createIcons();
         submitBtn.disabled = false;
       }
     });

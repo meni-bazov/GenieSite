@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-      /* סידור אלמנטים דינמיים שמוזרקים מה-JS */
       .row {
         display: grid;
         grid-template-columns: 1fr;
@@ -22,24 +21,41 @@
     </style>
   </head>
   <body>
-    <header class="topbar" style="padding: 1rem 5%">
-      <div
-        style="
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-weight: bold;
-          font-size: 1.5rem;
-        "
-      >
-        <i data-lucide="wand-2" style="color: var(--primary)"></i> Genie<span
-          style="color: var(--primary)"
-          >Site</span
+    <header
+      class="topbar"
+      style="
+        height: 75px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 2rem;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-card);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      "
+    >
+      <div style="display: flex; align-items: center; gap: 0.75rem">
+        <div
+          style="
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+          "
         >
+          <i data-lucide="wand-2"></i>
+        </div>
+        <h2 style="margin: 0; font-size: 1.4rem; font-weight: 600">
+          GenieSite
+        </h2>
       </div>
       <button
         class="btn btn-outline"
         id="themeToggle"
+        type="button"
         style="padding: 0.5rem 1rem"
       >
         <i data-lucide="moon" id="themeIcon"></i> מצב תצוגה
@@ -48,7 +64,18 @@
 
     <main class="container">
       <div class="hero-section">
-        <h1>בואו נאפיין את האתר שלכם! 🚀</h1>
+        <h1>
+          בואו נאפיין את האתר שלכם!
+          <i
+            data-lucide="rocket"
+            style="
+              display: inline;
+              width: 28px;
+              height: 28px;
+              color: var(--primary);
+            "
+          ></i>
+        </h1>
         <p
           class="text-muted"
           style="font-size: 1.1rem; max-width: 600px; margin: 0 auto"
@@ -113,7 +140,7 @@
                 class="form-control"
                 rows="3"
                 required
-                placeholder="ספרו לנו קצת על העסק, מה אתם עושים, כמה זמן אתם קיימים..."
+                placeholder="ספרו לנו קצת על העסק..."
               ></textarea>
             </div>
             <div class="form-group">
@@ -122,16 +149,16 @@
                 type="text"
                 name="targetAudience"
                 class="form-control"
-                placeholder="לדוגמה: זוגות מתחתנים, בעלי עסקים, הורים..."
+                placeholder="לדוגמה: זוגות מתחתנים..."
               />
             </div>
             <div class="form-group">
-              <label>מה הייחודיות שלכם? (למה דווקא אתם?)</label>
+              <label>מה הייחודיות שלכם?</label>
               <input
                 type="text"
                 name="uniqueValue"
                 class="form-control"
-                placeholder="לדוגמה: שירות אישי, מחיר אטרקטיבי, ניסיון של 20 שנה..."
+                placeholder="לדוגמה: שירות אישי, מחיר אטרקטיבי..."
               />
             </div>
           </div>
@@ -184,28 +211,18 @@
             <div class="form-group">
               <label>טון כתיבה רצוי</label>
               <select name="tone" class="form-control">
-                <option value="מקצועי ורשמי">
-                  מקצועי ורשמי (עורכי דין, רואי חשבון)
-                </option>
-                <option value="קליל וחברי" selected>
-                  קליל וחברי (לייף סטייל, צילום, אימון)
-                </option>
-                <option value="מכירתי ומניע לפעולה">
-                  מכירתי ומניע לפעולה (חנויות, מבצעים)
-                </option>
-                <option value="יוקרתי ואלגנטי">
-                  יוקרתי ואלגנטי (תכשיטים, אדריכלות)
-                </option>
+                <option value="מקצועי ורשמי">מקצועי ורשמי</option>
+                <option value="קליל וחברי" selected>קליל וחברי</option>
+                <option value="מכירתי ומניע לפעולה">מכירתי ומניע לפעולה</option>
+                <option value="יוקרתי ואלגנטי">יוקרתי ואלגנטי</option>
               </select>
             </div>
             <div class="form-group">
               <label>שפת האתר</label>
               <select name="language" class="form-control">
-                <option value="עברית (זכר)">עברית - פנייה בלשון זכר</option>
-                <option value="עברית (נקבה)">עברית - פנייה בלשון נקבה</option>
-                <option value="עברית (רבים)" selected>
-                  עברית - פנייה בלשון רבים (מומלץ)
-                </option>
+                <option value="עברית (זכר)">עברית - זכר</option>
+                <option value="עברית (נקבה)">עברית - נקבה</option>
+                <option value="עברית (רבים)" selected>עברית - רבים</option>
                 <option value="אנגלית">אנגלית</option>
               </select>
             </div>
@@ -215,7 +232,7 @@
                 type="text"
                 name="designStyle"
                 class="form-control"
-                placeholder="לדוגמה: מינימליסטי, שחור לבן ונגיעות של זהב..."
+                placeholder="לדוגמה: מינימליסטי, שחור לבן..."
               />
             </div>
           </div>
@@ -275,7 +292,7 @@
                 data-lucide="message-square-quote"
                 style="color: var(--primary)"
               ></i>
-              המלצות מלקוחות (לא חובה)</span
+              המלצות מלקוחות</span
             >
           </div>
           <div class="panel-body">
@@ -400,32 +417,6 @@
       </form>
     </main>
 
-    <script>
-      lucide.createIcons();
-      const themeToggle = document.getElementById("themeToggle");
-      const htmlElement = document.documentElement;
-      const themeIcon = document.getElementById("themeIcon");
-
-      const savedTheme = localStorage.getItem("genieTheme") || "light";
-      htmlElement.setAttribute("data-theme", savedTheme);
-      themeIcon.setAttribute(
-        "data-lucide",
-        savedTheme === "dark" ? "sun" : "moon",
-      );
-      lucide.createIcons();
-
-      themeToggle.addEventListener("click", () => {
-        const newTheme =
-          htmlElement.getAttribute("data-theme") === "light" ? "dark" : "light";
-        htmlElement.setAttribute("data-theme", newTheme);
-        localStorage.setItem("genieTheme", newTheme);
-        themeIcon.setAttribute(
-          "data-lucide",
-          newTheme === "dark" ? "sun" : "moon",
-        );
-        lucide.createIcons();
-      });
-    </script>
     <script src="script.js"></script>
   </body>
 </html>
