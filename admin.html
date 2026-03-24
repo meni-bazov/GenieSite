@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GenieSite Admin | לוח בקרה</title>
     <link rel="stylesheet" href="style.css" />
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="[https://unpkg.com/lucide@latest](https://unpkg.com/lucide@latest)"></script>
     <style>
       body {
         margin: 0;
@@ -16,6 +16,7 @@
       .sidebar {
         width: 320px;
         z-index: 10;
+        flex-shrink: 0;
       }
       .sidebar-header {
         padding: 1.5rem;
@@ -41,6 +42,7 @@
         flex: 1;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .topbar {
         height: 75px;
@@ -49,11 +51,14 @@
         align-items: center;
         padding: 0 2rem;
         border-bottom: 1px solid var(--border-color);
+        flex-shrink: 0;
       }
       .content-area {
         padding: 2rem;
         overflow-y: auto;
         flex: 1;
+        display: flex;
+        flex-direction: column;
       }
 
       .split-view {
@@ -61,7 +66,89 @@
         grid-template-columns: 1fr 1fr;
         gap: 1.5rem;
         height: 100%;
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
+        overflow: hidden;
+      }
+      .data-panel {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .panel-body {
+        overflow-y: auto;
+      }
+
+      /* --- עיצוב לשוניות ה-AI --- */
+      .ai-tabs-container {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-card);
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        flex-shrink: 0;
+      }
+      .ai-tab-btn {
+        padding: 0.6rem 1.25rem;
+        background: var(--bg-body);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        color: var(--text-muted);
+        cursor: pointer;
+        font-weight: 500;
+        white-space: nowrap;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .ai-tab-btn:hover {
+        background: var(--border-color);
+        color: var(--text-main);
+      }
+      .ai-tab-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        box-shadow: var(--shadow-sm);
+      }
+
+      /* --- עיצוב סקשנים ב-AI --- */
+      .ai-section-box {
+        background: var(--bg-body);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-md);
+        border: 1px solid var(--border-color);
+        margin-bottom: 1.25rem;
+        position: relative;
+      }
+      .ai-section-title {
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+      }
+      .ai-section-content {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        white-space: pre-line;
+        line-height: 1.7;
+      }
+
+      /* כפתור העתקה אחיד כמו באדמין */
+      .btn-copy {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        opacity: 0.6;
+      }
+      .btn-copy:hover {
+        opacity: 1;
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
       }
 
       /* מודל מחיקה */
@@ -132,13 +219,16 @@
     <main class="dashboard-main">
       <header class="topbar">
         <h1 id="topbarTitle" style="margin: 0; font-size: 1.4rem">לוח בקרה</h1>
-        <button
-          class="btn btn-outline"
-          id="themeToggleAdmin"
-          style="padding: 0.5rem 1rem"
-        >
-          <i data-lucide="moon" id="themeIcon"></i> מצב תצוגה
-        </button>
+        <div style="display: flex; align-items: center; gap: 1rem">
+          <span>שלום, מני Bazov</span>
+          <button
+            class="btn btn-outline"
+            id="themeToggleAdmin"
+            style="padding: 0.5rem 1rem"
+          >
+            <i data-lucide="moon" id="themeIcon"></i>
+          </button>
+        </div>
       </header>
 
       <div class="content-area">
@@ -161,20 +251,7 @@
           <p>בחר לקוח מהתפריט בצד כדי לצפות בפרטים שלו וליצור עבורו תוכן.</p>
         </div>
 
-        <div id="splitView" style="display: none">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 1.5rem;
-            "
-          >
-            <p class="text-muted">
-              עבור על הנתונים שהלקוח הזין, וצור עבורו תוכן בלחיצת כפתור.
-            </p>
-          </div>
-
+        <div id="splitView" style="display: none; height: 100%">
           <div class="split-view">
             <div class="data-panel">
               <div class="panel-header">
@@ -186,7 +263,7 @@
               <div class="panel-body" id="clientRawData"></div>
             </div>
 
-            <div class="data-panel">
+            <div class="data-panel" id="aiOutputPanel">
               <div class="panel-header">
                 <span style="display: flex; align-items: center; gap: 0.5rem"
                   ><i data-lucide="sparkles" style="color: #eab308"></i> תוצר
@@ -195,23 +272,36 @@
                 <button
                   class="btn btn-primary"
                   style="padding: 0.4rem 1rem; font-size: 0.85rem"
-                  onclick="alert('חיבור AI בקרוב!')"
+                  id="generateContentBtn"
                 >
-                  <i data-lucide="bot"></i> צור תוכן
+                  <i data-lucide="bot"></i>
+                  <span id="btnText">צור תוכן עם Gemini</span>
                 </button>
               </div>
-              <div class="panel-body">
-                <div class="empty-state">
+
+              <div
+                class="ai-tabs-container"
+                id="aiTabs"
+                style="display: none"
+              ></div>
+
+              <div class="panel-body" id="aiContentDisplay">
+                <div class="empty-state" style="padding: 4rem 2rem">
                   <i
                     data-lucide="brain-circuit"
                     style="
-                      width: 40px;
-                      height: 40px;
+                      width: 48px;
+                      height: 48px;
                       color: var(--text-muted);
                       opacity: 0.5;
+                      margin-bottom: 1rem;
                     "
                   ></i>
-                  <p>התוכן שה-AI ייצר עבור הלקוח יופיע כאן.</p>
+                  <h3>התוכן השיווקי שלך מחכה</h3>
+                  <p style="max-width: 300px; margin: 0 auto">
+                    לחץ על הכפתור "צור תוכן" כדי לשלוח את הנתונים ל-AI ולקבל
+                    טקסטים שלמים ומסודרים לפי דפים וסקשנים.
+                  </p>
                 </div>
               </div>
             </div>
@@ -232,9 +322,13 @@
         >
           <i data-lucide="alert-triangle" style="width: 48px; height: 48px"></i>
         </div>
-        <h3 style="color: var(--danger)">מחיקת לקוח</h3>
+        <h3 style="color: var(--danger)">מחיקת לקוח לצמיתות</h3>
         <p>
-          האם אתה בטוח שברצונך למחוק את <strong id="modalClientName"></strong>?
+          האם אתה בטוח שברצונך למחוק את
+          <strong id="modalClientName"></strong> מהמערכת?
+        </p>
+        <p class="text-muted" style="font-size: 0.85rem">
+          פעולה זו תמחק את כל המידע ולא ניתן יהיה לשחזרו.
         </p>
         <div class="modal-actions">
           <button class="btn btn-outline" onclick="closeDeleteModal()">
@@ -245,7 +339,7 @@
             style="background: var(--danger)"
             id="confirmDeleteBtn"
           >
-            כן, מחק
+            כן, מחק!
           </button>
         </div>
       </div>
@@ -253,6 +347,7 @@
 
     <script src="adminScript.js"></script>
     <script>
+      // ניהול מצב לילה
       lucide.createIcons();
       const themeToggle = document.getElementById("themeToggleAdmin");
       const htmlElement = document.documentElement;
