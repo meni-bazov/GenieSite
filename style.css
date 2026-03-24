@@ -1,167 +1,254 @@
-/* GenieSite - CSS Variables for Theming & Consistency */
+/* --- עיצוב בהשראת PRODJ (Slate & Indigo) --- */
 :root {
-  /* Colors - Genie Purple & Gold */
-  --primary: #7b61ff; /* Modern Genie Purple */
-  --primary-hover: #654ce6;
-  --accent: #d69e2e; /* Gold/Dark Yellow */
-  --accent-hover: #b98927;
-  --danger: #ef4444; /* Danger Red */
+  /* צבעי בסיס - Indigo מודרני */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --danger: #ef4444;
 
-  /* Light Theme Variables */
-  --bg-body: #f4f6f9;
+  /* מצב בהיר - Slate Palette */
+  --bg-body: #f8fafc;
   --bg-card: #ffffff;
-  --text-main: #2d3748;
-  --text-muted: #718096;
-  --border-color: #e2e8f0;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #f1f5f9;
+  --border-input: #e2e8f0;
   --input-bg: #ffffff;
 
-  /* Shared Styles */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 15px rgba(0, 0, 0, 0.05);
-  --border-radius: 12px;
-  --transition: all 0.3s ease;
+  /* משתני עיצוב כלליים */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --border-radius-lg: 1rem; /* פינות עגולות כמו ב-PRODJ */
+  --border-radius-md: 0.5rem;
+  --transition: all 0.2s ease;
 }
 
-/* Dark Theme Variables */
+/* מצב כהה - Dark Slate Palette */
 [data-theme="dark"] {
   --bg-body: #0f172a;
   --bg-card: #1e293b;
-  --text-main: #f8fafc;
+  --text-main: #f1f5f9;
   --text-muted: #94a3b8;
   --border-color: #334155;
+  --border-input: #334155;
   --input-bg: #0f172a;
 }
 
-/* --- Base Styles --- */
+/* --- איפוס ובסיס --- */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-body {
   font-family:
-    "Segoe UI",
     system-ui,
     -apple-system,
     sans-serif;
+}
+
+body {
   background-color: var(--bg-body);
   color: var(--text-main);
   line-height: 1.6;
-  transition: var(--transition);
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 }
 
 .container {
   width: 90%;
-  max-width: 1000px;
+  max-width: 1100px;
   margin: 0 auto;
+  padding: 2rem 0;
 }
 
-/* Typography */
 h1,
 h2,
 h3 {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-.text-center {
-  text-align: center;
-}
-.genie-icon {
-  margin-right: 5px;
-  color: var(--accent);
-}
-
-/* --- Navbar & Branding --- */
-.navbar {
-  background: var(--bg-card);
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-.brand-container {
-  display: flex;
-  flex-direction: column;
-}
-.brand {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
   color: var(--text-main);
 }
-.brand .highlight {
-  color: var(--accent);
+hr {
+  border: 0;
+  border-top: 1px solid var(--border-color);
+  margin: 1.5rem 0;
 }
-.brand-subtitle {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: -3px;
+a {
+  text-decoration: none;
+  color: var(--primary);
 }
 
-/* --- Buttons --- */
-.btn {
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
+/* --- כרטיסיות (Cards) ופאנלים --- */
+.card,
+.data-panel,
+.sidebar,
+.topbar {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.data-panel,
+.card {
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
   font-weight: 600;
-  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+/* --- טפסים (Inputs) --- */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.form-control,
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-input);
+  border-radius: var(--border-radius-md);
+  color: var(--text-main);
+  outline: none;
+  transition: var(--transition);
+}
+
+.form-control:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+/* --- כפתורים (Buttons) --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  border-radius: var(--border-radius-md);
   border: none;
   cursor: pointer;
   transition: var(--transition);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: inherit;
 }
-.btn-sm {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-}
+
 .btn-primary {
-  background: var(--primary);
+  background-color: var(--primary);
   color: white;
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.5);
 }
 .btn-primary:hover {
-  background: var(--primary-hover);
-  transform: translateY(-2px);
+  background-color: var(--primary-hover);
 }
+
 .btn-outline {
-  background: transparent;
-  border: 1px solid var(--border-color);
+  background-color: transparent;
+  border: 1px solid var(--border-input);
   color: var(--text-main);
 }
 .btn-outline:hover {
-  background: var(--border-color);
-}
-.btn-outline-primary {
-  border: 1px solid var(--primary);
-  color: var(--primary);
-  background: transparent;
-}
-.btn-outline-primary:hover {
-  background: var(--primary);
-  color: white;
+  background-color: var(--border-color);
 }
 
 .btn-icon {
   background: transparent;
   border: none;
-  font-size: 1.1rem;
+  color: var(--text-muted);
   cursor: pointer;
-  opacity: 0.6;
+  padding: 0.5rem;
+  border-radius: var(--border-radius-md);
   transition: var(--transition);
 }
 .btn-icon:hover {
-  opacity: 1;
-  transform: scale(1.1);
   color: var(--danger);
+  background-color: rgba(239, 68, 68, 0.1);
 }
 
-/* --- Footer --- */
-.site-footer {
-  margin-top: 4rem;
-  padding: 2rem 0;
-  border-top: 1px solid var(--border-color);
+/* --- Sidebar (Admin) --- */
+.sidebar {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border-color);
+}
+.client-item {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.client-item:hover {
+  background-color: var(--bg-body);
+}
+.client-item.active {
+  background-color: rgba(79, 70, 229, 0.05);
+  border-right: 4px solid var(--primary);
+}
+.client-name {
+  font-weight: 600;
+  display: block;
+}
+.client-date {
+  font-size: 0.8rem;
   color: var(--text-muted);
+}
+
+/* --- עיצוב נתונים (Admin View) --- */
+.data-line {
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+}
+.data-line strong {
+  color: var(--text-main);
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+}
+.data-line span {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  background: var(--bg-body);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }

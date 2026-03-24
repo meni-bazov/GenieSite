@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("deleteModal");
   const modalNameEl = document.getElementById("modalClientName");
 
-  // משיכת לקוחות מהשרת
   async function fetchClients() {
     const listEl = document.getElementById("clientList");
     try {
@@ -17,23 +16,21 @@ document.addEventListener("DOMContentLoaded", () => {
         renderClientList();
       } else {
         listEl.innerHTML =
-          '<li class="client-item text-center">שגיאה בטעינת הנתונים</li>';
+          '<li class="client-item text-muted" style="justify-content:center;">שגיאה בטעינת הנתונים</li>';
       }
     } catch (err) {
-      console.error("Error fetching clients:", err);
       listEl.innerHTML =
-        '<li class="client-item text-center">שגיאה בתקשורת מול השרת</li>';
+        '<li class="client-item text-muted" style="justify-content:center;">שגיאה בתקשורת</li>';
     }
   }
 
-  // יצירת רשימת תפריט הצד
   function renderClientList() {
     const listEl = document.getElementById("clientList");
     listEl.innerHTML = "";
 
     if (clientsData.length === 0) {
       listEl.innerHTML =
-        '<li class="client-item text-center">אין לקוחות עדיין במערכת</li>';
+        '<li class="client-item text-muted" style="justify-content:center;">אין טפסים עדיין</li>';
       return;
     }
 
@@ -50,17 +47,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const li = document.createElement("li");
       li.className = "client-item";
       li.innerHTML = `
-                <div class="client-info">
+                <div>
                     <span class="client-name">${businessName}</span>
                     <span class="client-date">${date}</span>
                 </div>
-                <button type="button" class="btn-icon remove-client-btn" title="מחק לקוח">🗑️</button>
+                <button type="button" class="btn-icon remove-client-btn" title="מחק"><i data-lucide="trash-2" style="width:18px; height:18px;"></i></button>
             `;
 
       li.addEventListener("click", (e) => {
-        if (!e.target.classList.contains("remove-client-btn")) {
-          selectClient(index, li);
-        }
+        if (!e.target.closest(".remove-client-btn")) selectClient(index, li);
       });
 
       li.querySelector(".remove-client-btn").addEventListener("click", (e) => {
@@ -70,9 +65,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       listEl.appendChild(li);
     });
+
+    // רענון אייקונים של Lucide
+    if (window.lucide) window.lucide.createIcons();
   }
 
-  // בחירת לקוח והצגת הנתונים שלו (הגרסה המלאה!)
   function selectClient(index, liElement) {
     document
       .querySelectorAll(".client-item")
@@ -83,146 +80,81 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("welcomeState").style.display = "none";
     document.getElementById("splitView").style.display = "block";
-
     document.getElementById("topbarTitle").innerText =
       client.businessName || client.general?.businessName || "פרטי לקוח";
 
     const val = (v) =>
       v
-        ? v
-        : '<span style="color:var(--text-muted); font-style:italic;">לא הוזן</span>';
+        ? `<span>${v}</span>`
+        : '<span style="color:var(--text-muted); font-style:italic; background:transparent; border:none; padding:0;">לא הוזן</span>';
+    const line = (label, value) =>
+      `<div class="data-line"><strong>${label}</strong> ${val(value)}</div>`;
 
-    // שליפת הנתונים מכל סעיפי הטופס
-    const siteName = client.siteName || client.general?.siteName;
-    const domain = client.domain || client.general?.domain;
-    const slogan = client.slogan || client.general?.slogan;
+    // בניית רשימות
+    const listHtml = (arr, renderFn) => {
+      if (!arr || arr.length === 0) return line("", "");
+      return `<div class="data-line" style="gap:0.5rem;">${arr.map(renderFn).join("")}</div>`;
+    };
 
-    const bizDesc =
-      client.businessDescription || client.business?.businessDescription;
-    const audience = client.targetAudience || client.business?.targetAudience;
-    const uniqueVal = client.uniqueValue || client.business?.uniqueValue;
-
-    const tone = client.tone || client.style?.tone;
-    const length = client.contentLength || client.style?.contentLength;
-    const lang = client.language || client.style?.language;
-
-    const refSites =
-      client.referenceSites || client.inspiration?.referenceSites;
-    const designStyle = client.designStyle || client.inspiration?.designStyle;
-
-    const brandColors = client.brandColors || client.branding?.brandColors;
-    const prefFont = client.preferredFont || client.branding?.preferredFont;
-
-    const phone = client.phone || client.contact?.phone;
-    const email = client.email || client.contact?.email;
-    const address = client.address || client.contact?.address;
-    const hours = client.hours || client.contact?.hours;
-
-    const facebook = client.facebook || client.social?.facebook;
-    const instagram = client.instagram || client.social?.instagram;
-
-    const seoKw = client.seoKeywords || client.seo?.keywords;
-    const seoArea = client.serviceArea || client.seo?.serviceArea;
-    const extra = client.extraNotes;
-
-    // בניית רשימת השירותים
-    let servicesHtml = "";
-    if (client.services && client.services.length > 0) {
-      servicesHtml = client.services
-        .map((s) => `<li><strong>${s.name}</strong>: ${s.description}</li>`)
-        .join("");
-    } else {
-      servicesHtml = val("");
-    }
-
-    // בניית רשימת היתרונות
-    let benefitsHtml = "";
-    if (client.benefits && client.benefits.length > 0) {
-      benefitsHtml = client.benefits
-        .map((b) => `<li><strong>${b.title}</strong>: ${b.description}</li>`)
-        .join("");
-    } else {
-      benefitsHtml = val("");
-    }
-
-    // בניית המלצות
-    let testimonialsHtml = "";
-    if (client.testimonials && Array.isArray(client.testimonials)) {
-      testimonialsHtml = client.testimonials
-        .map((t) => `<li><strong>${t.name}</strong>: ${t.text}</li>`)
-        .join("");
-    } else if (
-      typeof client.testimonials === "string" &&
-      client.testimonials.trim() !== ""
-    ) {
-      testimonialsHtml = client.testimonials;
-    } else {
-      testimonialsHtml = val("");
-    }
-
-    // טיפול בעמודים מבוקשים
-    let pagesDisplay = "";
-    if (client.pages && Array.isArray(client.pages)) {
-      pagesDisplay = client.pages.join(", ");
-    } else if (client.pages?.selected && Array.isArray(client.pages.selected)) {
-      pagesDisplay = client.pages.selected.join(", ");
-    }
-    const otherPages = client.otherPages || client.pages?.otherPages;
-    if (otherPages) pagesDisplay += ` (נוספים: ${otherPages})`;
-    if (!pagesDisplay) pagesDisplay = val("");
-
-    // הזרקת הנתונים המלאים למסך
     const rawDataEl = document.getElementById("clientRawData");
     rawDataEl.innerHTML = `
-          <h3>1. פרטים כלליים</h3>
-          <p><strong>שם האתר:</strong> ${val(siteName)}</p>
-          <p><strong>דומיין:</strong> ${val(domain)}</p>
-          <p><strong>סלוגן:</strong> ${val(slogan)}</p>
-          <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
+          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="info" style="width:18px;height:18px;"></i> פרטים כלליים</h3>
+          ${line("שם האתר", client.siteName)}
+          ${line("דומיין", client.domain)}
+          ${line("סלוגן", client.slogan)}
+          <hr>
           
-          <h3>2. על העסק</h3>
-          <p><strong>תיאור:</strong> ${val(bizDesc)}</p>
-          <p><strong>קהל יעד:</strong> ${val(audience)}</p>
-          <p><strong>ייחודיות:</strong> ${val(uniqueVal)}</p>
-          <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
+          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="briefcase" style="width:18px;height:18px;"></i> על העסק</h3>
+          ${line("תיאור העסק", client.businessDescription)}
+          ${line("קהל יעד", client.targetAudience)}
+          ${line("הייחודיות של העסק", client.uniqueValue)}
+          <hr>
           
-          <h3>3. שירותים / מוצרים</h3>
-          <ul>${servicesHtml}</ul>
-          <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
+          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="package" style="width:18px;height:18px;"></i> שירותים / מוצרים</h3>
+          ${listHtml(client.services, (s) => `<span><b>${s.name}:</b> ${s.description}</span>`)}
+          <hr>
 
-          <h3>4. יתרונות (Benefits)</h3>
-          <ul>${benefitsHtml}</ul>
-          <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
+          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="award" style="width:18px;height:18px;"></i> יתרונות העסק</h3>
+          ${listHtml(client.benefits, (b) => `<span><b>${b.title}:</b> ${b.description}</span>`)}
+          <hr>
 
-          <h3>5. טון, סגנון והשראה</h3>
-          <p><strong>טון:</strong> ${val(tone)} | <strong>אורך:</strong> ${val(length)} | <strong>שפה:</strong> ${val(lang)}</p>
-          <p><strong>אתרי השראה:</strong> ${val(refSites)}</p>
-          <p><strong>סגנון עיצוב:</strong> ${val(designStyle)}</p>
-          <p><strong>צבעים:</strong> ${val(brandColors)} | <strong>פונט:</strong> ${val(prefFont)}</p>
-          <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
+          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="palette" style="width:18px;height:18px;"></i> סגנון והשראה</h3>
+          ${line("טון כתיבה", client.tone)}
+          ${line("אורך טקסטים", client.contentLength)}
+          ${line("שפת האתר", client.language)}
+          ${line("אתרי השראה", client.referenceSites)}
+          ${line("סגנון עיצוב", client.designStyle)}
+          ${line("צבעי מותג", client.brandColors)}
+          ${line("פונט מועדף", client.preferredFont)}
+          <hr>
 
-          <h3>6. פרטי התקשרות ורשתות</h3>
-          <p><strong>טלפון:</strong> ${val(phone)} | <strong>דוא"ל:</strong> ${val(email)}</p>
-          <p><strong>כתובת:</strong> ${val(address)} | <strong>שעות:</strong> ${val(hours)}</p>
-          <p><strong>רשתות:</strong> FB: ${val(facebook)} | IG: ${val(instagram)}</p>
-          <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
+          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="phone-call" style="width:18px;height:18px;"></i> פרטי התקשרות ורשתות</h3>
+          ${line("טלפון", client.phone)}
+          ${line('דוא"ל', client.email)}
+          ${line("כתובת", client.address)}
+          ${line("שעות פעילות", client.hours)}
+          ${line("פייסבוק", client.facebook)}
+          ${line("אינסטגרם", client.instagram)}
+          <hr>
 
-          <h3>7. המלצות (Testimonials)</h3>
-          <ul>${testimonialsHtml}</ul>
-          <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
+          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="message-square-quote" style="width:18px;height:18px;"></i> המלצות</h3>
+          ${listHtml(client.testimonials, (t) => `<span><b>${t.name}:</b> ${t.text}</span>`)}
+          <hr>
 
-          <h3>8. SEO ועמודים</h3>
-          <p><strong>מילות מפתח:</strong> ${val(seoKw)}</p>
-          <p><strong>אזור שירות:</strong> ${val(seoArea)}</p>
-          <p><strong>עמודים מבוקשים:</strong> ${pagesDisplay}</p>
-          <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
+          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="search" style="width:18px;height:18px;"></i> SEO ועמודים</h3>
+          ${line("מילות מפתח", client.seoKeywords)}
+          ${line("אזורי שירות", client.serviceArea)}
+          ${line("עמודים מבוקשים", client.pages ? client.pages.join(", ") : "")}
+          ${line("עמודים נוספים", client.otherPages)}
+          <hr>
 
-          <h3>9. הערות נוספות</h3>
-          <p>${val(extra)}</p>
+          <h3 style="color:var(--primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="file-text" style="width:18px;height:18px;"></i> הערות נוספות</h3>
+          ${line("הערות", client.extraNotes)}
         `;
+
+    if (window.lucide) window.lucide.createIcons();
   }
 
-  // פונקציות המודל (מחיקה)
   function openDeleteModal(index, name, element) {
     clientToDeleteIndex = index;
     clientToDeleteElement = element;
@@ -239,14 +171,11 @@ document.addEventListener("DOMContentLoaded", () => {
     clientToDeleteElement.style.opacity = "0";
     setTimeout(() => clientToDeleteElement.remove(), 300);
     clientsData.splice(clientToDeleteIndex, 1);
-
-    // חזרה למסך הריק אם הלקוח המחוק היה פתוח
     if (clientToDeleteElement.classList.contains("active")) {
       document.getElementById("welcomeState").style.display = "flex";
       document.getElementById("splitView").style.display = "none";
     }
   });
 
-  // הפעלה ראשונית
   fetchClients();
 });

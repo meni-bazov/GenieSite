@@ -5,196 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GenieSite Admin | לוח בקרה</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-      /* תוספות CSS ספציפיות לרכיבי האדמין שאינם בטופס הלקוח */
       body {
         margin: 0;
         display: flex;
         height: 100vh;
         overflow: hidden;
-        background: var(--bg-body);
       }
-
-      /* Sidebar */
       .sidebar {
         width: 320px;
-        background: var(--bg-card);
-        border-left: 1px solid var(--border-color);
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        box-shadow: var(--shadow-sm);
         z-index: 10;
       }
       .sidebar-header {
-        padding: 20px;
+        padding: 1.5rem;
         border-bottom: 1px solid var(--border-color);
-        text-align: center;
-        background: var(--bg-card);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
       }
-      .sidebar-header .brand {
-        font-size: 1.5rem;
+      .icon-box {
+        background: var(--primary);
+        color: white;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        display: flex;
       }
       .client-list {
         flex: 1;
         overflow-y: auto;
         list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-      .client-item {
-        padding: 15px 20px;
-        border-bottom: 1px solid var(--border-color);
-        cursor: pointer;
-        transition: var(--transition);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: relative;
-      }
-      .client-item:hover {
-        background: rgba(123, 97, 255, 0.05);
-      }
-      .client-item.active {
-        background: rgba(123, 97, 255, 0.1);
-        border-right: 4px solid var(--primary);
-      }
-      .client-info {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        margin-left: 10px;
-      }
-      .client-name {
-        font-weight: bold;
-        color: var(--text-main);
-      }
-      .client-date {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-      }
-      .remove-client-btn {
-        opacity: 0;
-        transition: var(--transition);
-      }
-      .client-item:hover .remove-client-btn {
-        opacity: 1;
       }
 
-      /* Main Content */
       .dashboard-main {
         flex: 1;
         display: flex;
         flex-direction: column;
-        background: var(--bg-body);
-        height: 100%;
       }
       .topbar {
-        height: 70px;
-        background: var(--bg-card);
-        border-bottom: 1px solid var(--border-color);
+        height: 75px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 30px;
+        padding: 0 2rem;
+        border-bottom: 1px solid var(--border-color);
       }
-      .topbar h1 {
-        margin: 0;
-        font-size: 1.5rem;
-        color: var(--text-main);
-      }
-      .admin-profile {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        font-weight: bold;
-        color: var(--text-main);
-      }
-
       .content-area {
-        padding: 30px;
+        padding: 2rem;
         overflow-y: auto;
         flex: 1;
-        display: flex;
-        flex-direction: column;
-      }
-      .client-detail-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-      }
-      .text-muted {
-        color: var(--text-muted);
-        font-size: 0.95rem;
       }
 
-      /* Split View for Form Data vs AI Content */
       .split-view {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 24px;
+        gap: 1.5rem;
         height: 100%;
-        margin-bottom: 30px;
-      }
-      .data-panel {
-        background: var(--bg-card);
-        border-radius: var(--border-radius);
-        border: 1px solid var(--border-color);
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        min-height: 400px;
-      }
-      .panel-header {
-        padding: 15px 20px;
-        border-bottom: 1px solid var(--border-color);
-        background: rgba(123, 97, 255, 0.05);
-        font-weight: bold;
-        display: flex;
-        justify-content: space-between;
-        color: var(--text-main);
-      }
-      .panel-body {
-        padding: 25px;
-        overflow-y: auto;
-        flex: 1;
-        color: var(--text-main);
-        font-size: 0.95rem;
-        line-height: 1.7;
-      }
-      .panel-body h3 {
-        color: var(--primary);
-        margin-top: 0;
-        margin-bottom: 12px;
-        font-size: 1.15rem;
+        margin-bottom: 2rem;
       }
 
-      .empty-state {
-        text-align: center;
-        color: var(--text-muted);
-        margin-top: 20vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-      }
-
-      /* Modal / Popup for deletion */
+      /* מודל מחיקה */
       .modal-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(15, 23, 42, 0.6);
         display: none;
         justify-content: center;
         align-items: center;
         z-index: 1000;
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.3s;
       }
       .modal-overlay.open {
         display: flex;
@@ -202,113 +85,134 @@
       }
       .modal-content {
         background: var(--bg-card);
-        padding: 30px;
-        border-radius: var(--border-radius);
+        padding: 2rem;
+        border-radius: var(--border-radius-lg);
         box-shadow: var(--shadow-md);
         max-width: 400px;
         width: 90%;
         text-align: center;
-        transform: scale(0.9);
-        transition: transform 0.3s ease;
-      }
-      .modal-overlay.open .modal-content {
-        transform: scale(1);
-      }
-      .modal-content h3 {
-        color: var(--danger);
-        margin-top: 0;
       }
       .modal-actions {
         display: flex;
         justify-content: center;
-        gap: 15px;
-        margin-top: 25px;
+        gap: 1rem;
+        margin-top: 1.5rem;
       }
     </style>
   </head>
   <body>
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="brand-container">
-          <div class="brand">
-            <span class="genie-icon">🪄</span> Genie<span class="highlight"
-              >Site</span
-            >
-          </div>
-          <div class="brand-subtitle">ניהול לקוחות</div>
+        <div class="icon-box"><i data-lucide="wand-2"></i></div>
+        <div>
+          <h2 style="margin: 0; font-size: 1.2rem">GenieSite</h2>
+          <span style="font-size: 0.8rem; color: var(--text-muted)"
+            >ניהול לקוחות</span
+          >
         </div>
       </div>
       <ul class="client-list" id="clientList">
-        <li class="client-item text-center">
-          <span class="client-name">⏳ טוען נתונים...</span>
+        <li class="client-item" style="justify-content: center">
+          <i data-lucide="loader-2" class="lucide-spin text-muted"></i>
         </li>
       </ul>
-      <footer
-        class="site-footer"
-        style="padding: 1rem 0; border-top: 1px solid var(--border-color)"
+      <div
+        style="
+          padding: 1rem;
+          text-align: center;
+          border-top: 1px solid var(--border-color);
+          font-size: 0.8rem;
+          color: var(--text-muted);
+        "
       >
-        <div class="container text-center">
-          <p>&copy; 2026 GenieSite By Meni Bazov.</p>
-        </div>
-      </footer>
+        &copy; 2026 GenieSite By Meni Bazov
+      </div>
     </aside>
 
     <main class="dashboard-main">
       <header class="topbar">
-        <h1 id="topbarTitle">GenieSite Admin</h1>
-        <div class="admin-profile">
-          <span>שלום, מני</span>
-          <button class="btn btn-outline" id="themeToggleAdmin">
-            🌙 מצב כהה
-          </button>
-        </div>
+        <h1 id="topbarTitle" style="margin: 0; font-size: 1.4rem">לוח בקרה</h1>
+        <button
+          class="btn btn-outline"
+          id="themeToggleAdmin"
+          style="padding: 0.5rem 1rem"
+        >
+          <i data-lucide="moon" id="themeIcon"></i> מצב תצוגה
+        </button>
       </header>
 
       <div class="content-area">
-        <div id="welcomeState" class="empty-state">
-          <span class="genie-icon" style="font-size: 4rem">🪄</span>
-          <h2>ברוך הבא למערכת הניהול של GenieSite</h2>
-          <p>
-            בחר לקוח מהתפריט בצד כדי לצפות בפרטים שלו, לנהל את המידע וליצור
-            עבורו תוכן.
-          </p>
+        <div id="welcomeState" class="empty-state" style="margin-top: 10vh">
+          <div
+            style="
+              background: var(--border-color);
+              padding: 1.5rem;
+              border-radius: 50%;
+              color: var(--text-muted);
+              margin-bottom: 1rem;
+            "
+          >
+            <i
+              data-lucide="layout-template"
+              style="width: 48px; height: 48px"
+            ></i>
+          </div>
+          <h2>ברוך הבא למערכת הניהול</h2>
+          <p>בחר לקוח מהתפריט בצד כדי לצפות בפרטים שלו וליצור עבורו תוכן.</p>
         </div>
 
         <div id="splitView" style="display: none">
-          <div class="client-detail-header">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 1.5rem;
+            "
+          >
             <p class="text-muted">
-              עבור על החומרים שהלקוח הזין, ערוך את תוצר ה-AI, ואשר לפני שליחה
-              ללקוח.
+              עבור על הנתונים שהלקוח הזין, וצור עבורו תוכן בלחיצת כפתור.
             </p>
-            <div class="actions">
-              <button
-                class="btn btn-sm btn-outline-primary"
-                onclick="alert('בהמשך כאן יתבצע החיבור ל-AI!')"
-              >
-                🤖 צור תוכן מחדש
-              </button>
-              <button class="btn btn-sm btn-primary">✅ אשר ושלח ללקוח</button>
-            </div>
           </div>
 
           <div class="split-view">
             <div class="data-panel">
               <div class="panel-header">
-                <span>📝 נתוני מקור (מהלקוח)</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem"
+                  ><i data-lucide="file-text" style="color: var(--primary)"></i>
+                  נתוני מקור (מהלקוח)</span
+                >
               </div>
               <div class="panel-body" id="clientRawData"></div>
             </div>
 
             <div class="data-panel">
               <div class="panel-header">
-                <span>✨ יצירת תוכן (AI)</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem"
+                  ><i data-lucide="sparkles" style="color: #eab308"></i> תוצר
+                  AI</span
+                >
+                <button
+                  class="btn btn-primary"
+                  style="padding: 0.4rem 1rem; font-size: 0.85rem"
+                  onclick="alert('חיבור AI בקרוב!')"
+                >
+                  <i data-lucide="bot"></i> צור תוכן
+                </button>
               </div>
-              <div class="panel-body" style="padding: 15px">
-                <p class="empty-state">
-                  <span class="genie-icon" style="font-size: 2rem">🧠</span>
-                  לחץ על הכפתור "צור תוכן" כדי לשלוח את הנתונים ל-AI וליצור תוכן
-                  אוטומטי לאתר.
-                </p>
+              <div class="panel-body">
+                <div class="empty-state">
+                  <i
+                    data-lucide="brain-circuit"
+                    style="
+                      width: 40px;
+                      height: 40px;
+                      color: var(--text-muted);
+                      opacity: 0.5;
+                    "
+                  ></i>
+                  <p>התוכן שה-AI ייצר עבור הלקוח יופיע כאן.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -318,13 +222,19 @@
 
     <div class="modal-overlay" id="deleteModal">
       <div class="modal-content">
-        <h3>🗑️ מחיקת לקוח לצמיתות</h3>
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: var(--danger);
+          "
+        >
+          <i data-lucide="alert-triangle" style="width: 48px; height: 48px"></i>
+        </div>
+        <h3 style="color: var(--danger)">מחיקת לקוח</h3>
         <p>
-          האם אתה בטוח שברצונך למחוק את
-          <strong id="modalClientName"></strong> מהמערכת?
-        </p>
-        <p class="text-muted">
-          פעולה זו בלתי הפיכה והמידע של הלקוח יימחק לחלוטין.
+          האם אתה בטוח שברצונך למחוק את <strong id="modalClientName"></strong>?
         </p>
         <div class="modal-actions">
           <button class="btn btn-outline" onclick="closeDeleteModal()">
@@ -335,7 +245,7 @@
             style="background: var(--danger)"
             id="confirmDeleteBtn"
           >
-            כן, מחק!
+            כן, מחק
           </button>
         </div>
       </div>
@@ -343,21 +253,29 @@
 
     <script src="adminScript.js"></script>
     <script>
-      // חיבור ה-Dark Mode גם לאדמין (נפרד מה-script.js של הטופס)
+      lucide.createIcons();
       const themeToggle = document.getElementById("themeToggleAdmin");
       const htmlElement = document.documentElement;
+      const themeIcon = document.getElementById("themeIcon");
+
       const savedTheme = localStorage.getItem("genieTheme") || "light";
       htmlElement.setAttribute("data-theme", savedTheme);
-      themeToggle.innerText =
-        savedTheme === "dark" ? "☀️ מצב בהיר" : "🌙 מצב כהה";
+      themeIcon.setAttribute(
+        "data-lucide",
+        savedTheme === "dark" ? "sun" : "moon",
+      );
+      lucide.createIcons();
 
       themeToggle.addEventListener("click", () => {
         const newTheme =
           htmlElement.getAttribute("data-theme") === "light" ? "dark" : "light";
         htmlElement.setAttribute("data-theme", newTheme);
         localStorage.setItem("genieTheme", newTheme);
-        themeToggle.innerText =
-          newTheme === "dark" ? "☀️ מצב בהיר" : "🌙 מצב כהה";
+        themeIcon.setAttribute(
+          "data-lucide",
+          newTheme === "dark" ? "sun" : "moon",
+        );
+        lucide.createIcons();
       });
     </script>
   </body>
