@@ -14,7 +14,6 @@ mongoose
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => console.error("❌ MongoDB error:", err));
 
-// הוספנו כאן את aiContent כדי שיישמר במסד הנתונים
 const FormModel = mongoose.model(
   "ClientForm",
   new mongoose.Schema({
@@ -24,6 +23,25 @@ const FormModel = mongoose.model(
   }),
 );
 
+// --- 1. נתיב קבלת טופס מלקוח (זה מה שהיה חסר!) ---
+app.post("/api/submit-form", async (req, res) => {
+  try {
+    const clientData = req.body;
+    console.log("התקבלו נתונים חדשים מהטופס!");
+
+    const newForm = new FormModel({ data: clientData });
+    await newForm.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "הנתונים התקבלו ונשמרו בהצלחה!" });
+  } catch (error) {
+    console.error("❌ שגיאה בשמירה למסד הנתונים:", error);
+    res.status(500).json({ success: false, message: "שגיאת שרת פנימית" });
+  }
+});
+
+// --- 2. נתיב משיכת הלקוחות לאדמין ---
 app.get("/api/clients", async (req, res) => {
   try {
     const clients = await FormModel.find().sort({ createdAt: -1 });
@@ -33,6 +51,7 @@ app.get("/api/clients", async (req, res) => {
   }
 });
 
+// פונקציית הפרומפט
 function buildMasterPrompt(clientData) {
   const data = clientData;
   const tone = data.tone || "מקצועי";
@@ -65,7 +84,7 @@ function buildMasterPrompt(clientData) {
 `;
 }
 
-// נתיב יצירת AI - עכשיו גם שומר אוטומטית למסד הנתונים!
+// --- 3. נתיב יצירת תוכן AI עם Gemini ---
 app.post("/api/generate-content/:id", async (req, res) => {
   try {
     if (!process.env.GEMINI_API_KEY)
@@ -87,7 +106,6 @@ app.post("/api/generate-content/:id", async (req, res) => {
     const result = await model.generateContent(buildMasterPrompt(client.data));
     const generatedContent = JSON.parse(result.response.text());
 
-    // שמירה למסד הנתונים
     client.aiContent = generatedContent;
     await client.save();
 
@@ -97,7 +115,7 @@ app.post("/api/generate-content/:id", async (req, res) => {
   }
 });
 
-// --- נתיב חדש: שמירת העריכות הידניות שלך! ---
+// --- 4. נתיב שמירת עריכות ידניות מהאדמין ---
 app.put("/api/clients/:id/ai-content", async (req, res) => {
   try {
     const client = await FormModel.findById(req.params.id);
