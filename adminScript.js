@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeClientIndex = null;
   let currentClientId = null;
   let currentAIContent = null;
-  let currentView = "raw"; // שומר באיזה מסך אנחנו (אפיון או AI)
+  let currentView = "raw";
   let clientToDeleteIndex = null;
 
   const modal = document.getElementById("deleteModal");
@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ציור תפריט הצד (הסייד-בר) עם הכפתורים החכמים!
   function renderClientList() {
     const listEl = document.getElementById("clientList");
     listEl.innerHTML = "";
@@ -45,16 +44,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const li = document.createElement("li");
       li.className = `client-item ${index === activeClientIndex ? "active" : ""}`;
 
-      // יצירת פאנל הכפתורים אם הלקוח פעיל
       let actionsHtml = "";
       if (index === activeClientIndex) {
+        // הבדיקה אם יש תוכן אמיתי כדי להראות את כפתור השמירה
+        const hasRealContent = currentAIContent && currentAIContent.length > 0;
         actionsHtml = `
                     <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
                         <div style="display: flex; gap: 0.5rem;">
                             <button class="btn btn-sm ${currentView === "raw" ? "btn-primary" : "btn-outline"}" style="flex:1; padding:0.4rem;" onclick="switchView('raw', event)"><i data-lucide="file-text" style="width:14px;height:14px;"></i> אפיון</button>
                             <button class="btn btn-sm ${currentView === "ai" ? "btn-primary" : "btn-outline"}" style="flex:1; padding:0.4rem;" onclick="switchView('ai', event)"><i data-lucide="sparkles" style="width:14px;height:14px;"></i> AI</button>
                         </div>
-                        ${currentView === "ai" && currentAIContent ? `<button class="btn btn-sm btn-primary" style="background: #10b981; border-color: #10b981; width: 100%; padding:0.4rem;" onclick="saveEditedContent(event)"><i data-lucide="save" style="width:14px;height:14px;"></i> שמור עריכה</button>` : ""}
+                        ${currentView === "ai" && hasRealContent ? `<button class="btn btn-sm btn-primary" style="background: #10b981; border-color: #10b981; width: 100%; padding:0.4rem;" onclick="saveEditedContent(event)"><i data-lucide="save" style="width:14px;height:14px;"></i> שמור עריכה</button>` : ""}
                     </div>
                 `;
       }
@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
 
       li.addEventListener("click", (e) => {
-        if (e.target.closest("button")) return; // לא לוחץ אם לחצו על כפתור פנימי
+        if (e.target.closest("button")) return;
         selectClient(index);
       });
       li.querySelector(".remove-client-btn").addEventListener("click", (e) => {
@@ -83,18 +83,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.lucide) window.lucide.createIcons();
   }
 
-  // מעבר בין מסך אפיון למסך AI
   window.switchView = function (view, event) {
     if (event) event.stopPropagation();
     currentView = view;
-    renderClientList(); // מעדכן צבעי כפתורים בסיידבר
-    renderMainView(); // מחליף את התוכן בעמודה המרכזית
+    renderClientList();
+    renderMainView();
   };
 
   function selectClient(index) {
     activeClientIndex = index;
     currentClientId = clientsData[index]._id;
-    currentAIContent = clientsData[index].aiContent || null; // טוען תוכן שמור אם יש!
+
+    // התיקון הקריטי: בודק שזה לא רק מערך ריק, אלא שיש בו באמת תוכן
+    currentAIContent =
+      clientsData[index].aiContent && clientsData[index].aiContent.length > 0
+        ? clientsData[index].aiContent
+        : null;
+
     currentView = "raw";
     document.getElementById("welcomeState").style.display = "none";
 
@@ -102,7 +107,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderMainView();
   }
 
-  // מצייר את העמודה המרכזית (או אפיון או AI)
   function renderMainView() {
     const client = clientsData[activeClientIndex].data;
     document.getElementById("topbarTitle").innerText =
@@ -115,10 +119,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       document.getElementById("rawPanel").style.display = "none";
       document.getElementById("aiPanel").style.display = "flex";
-      if (currentAIContent) {
+
+      // התיקון הקריטי 2: מציג את כפתור היצירה אם אין תוכן
+      if (currentAIContent && currentAIContent.length > 0) {
         renderAITabs();
       } else {
-        // מסך "צור תוכן" אם עדיין לא נוצר
         document.getElementById("aiTabs").style.display = "none";
         document.getElementById("aiContentDisplay").innerHTML = `
                     <div style="text-align:center; padding: 4rem;">
@@ -133,7 +138,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // פונקציית היצירה (קוראת לשרת)
   window.generateAI = async function (e) {
     const btn = e.target.closest("button");
     btn.disabled = true;
@@ -148,9 +152,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       if (data.success) {
         currentAIContent = data.content;
-        clientsData[activeClientIndex].aiContent = data.content; // מעדכן זכרון מקומי
-        renderClientList(); // כדי להציג את כפתור השמירה
-        renderMainView(); // יציג את התוכן החדש
+        clientsData[activeClientIndex].aiContent = data.content;
+        renderClientList();
+        renderMainView();
       } else {
         alert("שגיאה: " + data.message);
       }
@@ -159,7 +163,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // פונקציית שמירת העריכות שלך ל-DB
   window.saveEditedContent = async function (e) {
     if (e) e.stopPropagation();
     const btn = e.target.closest("button");
@@ -191,7 +194,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // ציור הלשוניות
   function renderAITabs() {
     const tabsEl = document.getElementById("aiTabs");
     tabsEl.style.display = "flex";
@@ -211,7 +213,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderAIPageSections(0);
   }
 
-  // ציור הסקשנים והפיכתם לתיבות עריכה (Textareas)
   function renderAIPageSections(pageIndex) {
     const contentEl = document.getElementById("aiContentDisplay");
     contentEl.innerHTML = "";
@@ -221,7 +222,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const box = document.createElement("div");
       box.className = "ai-section-box";
 
-      // הכותרת וכפתור ההעתקה ברורים לחלוטין!
       box.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                     <div style="font-weight:bold; font-size:1.1rem; color:var(--text-main);">${section.sectionTitle}</div>
@@ -232,12 +232,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 <textarea class="ai-textarea" data-page="${pageIndex}" data-sec="${secIndex}">${section.content}</textarea>
             `;
 
-      // אירוע הקלדה מעדכן את האובייקט בזמן אמת
       box.querySelector("textarea").addEventListener("input", (e) => {
         currentAIContent[pageIndex].sections[secIndex].content = e.target.value;
       });
 
-      // אירוע העתקה
       box.querySelector(".btn-copy").addEventListener("click", (e) => {
         const textToCopy = box.querySelector("textarea").value;
         copyToClipboard(textToCopy, e.target.closest("button"));
@@ -308,7 +306,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.lucide) window.lucide.createIcons();
   }
 
-  // מחיקה
   window.openDeleteModal = function (index, name, element) {
     clientToDeleteIndex = index;
     modalNameEl.innerText = name;
