@@ -14,16 +14,16 @@ mongoose
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => console.error("❌ MongoDB error:", err));
 
-const FormModel = mongoose.model(
-  "ClientForm",
-  new mongoose.Schema({
-    data: Object,
-    aiContent: { type: Array, default: null },
-    createdAt: { type: Date, default: Date.now },
-  }),
-);
+// תיקון: הגדרה בטוחה יותר למבנה הנתונים שתמנע קריסות בשמירה
+const FormSchema = new mongoose.Schema({
+  data: Object,
+  aiContent: { type: Array, default: [] },
+  createdAt: { type: Date, default: Date.now },
+});
+const FormModel =
+  mongoose.models.ClientForm || mongoose.model("ClientForm", FormSchema);
 
-// --- 1. נתיב קבלת טופס מלקוח (זה מה שהיה חסר!) ---
+// --- 1. נתיב קבלת טופס מלקוח ---
 app.post("/api/submit-form", async (req, res) => {
   try {
     const clientData = req.body;
@@ -37,7 +37,11 @@ app.post("/api/submit-form", async (req, res) => {
       .json({ success: true, message: "הנתונים התקבלו ונשמרו בהצלחה!" });
   } catch (error) {
     console.error("❌ שגיאה בשמירה למסד הנתונים:", error);
-    res.status(500).json({ success: false, message: "שגיאת שרת פנימית" });
+    // עכשיו השרת יחזיר לך לדפדפן את השגיאה המדויקת באנגלית כדי שנדע מה קרה!
+    res.status(500).json({
+      success: false,
+      message: error.message || "שגיאה לא ידועה במסד הנתונים",
+    });
   }
 });
 
