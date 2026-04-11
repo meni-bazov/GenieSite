@@ -46,7 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let actionsHtml = "";
       if (index === activeClientIndex) {
-        // הבדיקה אם יש תוכן אמיתי כדי להראות את כפתור השמירה
         const hasRealContent = currentAIContent && currentAIContent.length > 0;
         actionsHtml = `
                     <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
@@ -93,13 +92,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function selectClient(index) {
     activeClientIndex = index;
     currentClientId = clientsData[index]._id;
-
-    // התיקון הקריטי: בודק שזה לא רק מערך ריק, אלא שיש בו באמת תוכן
     currentAIContent =
       clientsData[index].aiContent && clientsData[index].aiContent.length > 0
         ? clientsData[index].aiContent
         : null;
-
     currentView = "raw";
     document.getElementById("welcomeState").style.display = "none";
 
@@ -120,7 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("rawPanel").style.display = "none";
       document.getElementById("aiPanel").style.display = "flex";
 
-      // התיקון הקריטי 2: מציג את כפתור היצירה אם אין תוכן
       if (currentAIContent && currentAIContent.length > 0) {
         renderAITabs();
       } else {
@@ -306,6 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.lucide) window.lucide.createIcons();
   }
 
+  // --- לוגיקת המחיקה המלאה מהמסד נתונים ---
   window.openDeleteModal = function (index, name, element) {
     clientToDeleteIndex = index;
     modalNameEl.innerText = name;
@@ -314,15 +310,52 @@ document.addEventListener("DOMContentLoaded", () => {
   window.closeDeleteModal = function () {
     modal.classList.remove("open");
   };
+
   document
     .getElementById("confirmDeleteBtn")
     .addEventListener("click", async () => {
-      closeDeleteModal();
-      clientsData.splice(clientToDeleteIndex, 1);
-      renderClientList();
-      document.getElementById("welcomeState").style.display = "block";
-      document.getElementById("rawPanel").style.display = "none";
-      document.getElementById("aiPanel").style.display = "none";
+      const btn = document.getElementById("confirmDeleteBtn");
+      const ogHtml = btn.innerHTML;
+      btn.innerHTML =
+        '<i data-lucide="loader-2" class="lucide-spin"></i> מוחק...';
+      btn.disabled = true;
+      if (window.lucide) window.lucide.createIcons();
+
+      try {
+        const clientIdToDelete = clientsData[clientToDeleteIndex]._id;
+
+        // קריאה לשרת למחוק פיזית מ-MongoDB!
+        const res = await fetch(`/api/clients/${clientIdToDelete}`, {
+          method: "DELETE",
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          closeDeleteModal();
+          clientsData.splice(clientToDeleteIndex, 1);
+
+          // אם מחקנו את הלקוח שפתוח כרגע, נאפס את המסך
+          if (activeClientIndex === clientToDeleteIndex) {
+            activeClientIndex = null;
+            currentClientId = null;
+            document.getElementById("welcomeState").style.display = "block";
+            document.getElementById("rawPanel").style.display = "none";
+            document.getElementById("aiPanel").style.display = "none";
+          } else if (activeClientIndex > clientToDeleteIndex) {
+            activeClientIndex--; // מתקן את האינדקס אם משהו מעליו נמחק
+          }
+
+          renderClientList();
+        } else {
+          alert("שגיאה במחיקה: " + data.message);
+        }
+      } catch (err) {
+        alert("שגיאת תקשורת מול השרת במחיקה.");
+      } finally {
+        btn.innerHTML = ogHtml;
+        btn.disabled = false;
+        if (window.lucide) window.lucide.createIcons();
+      }
     });
 
   fetchClients();

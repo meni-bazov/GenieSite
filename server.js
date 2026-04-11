@@ -14,7 +14,6 @@ mongoose
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => console.error("❌ MongoDB error:", err));
 
-// תיקון: הגדרה בטוחה יותר למבנה הנתונים שתמנע קריסות בשמירה
 const FormSchema = new mongoose.Schema({
   data: Object,
   aiContent: { type: Array, default: [] },
@@ -27,21 +26,15 @@ const FormModel =
 app.post("/api/submit-form", async (req, res) => {
   try {
     const clientData = req.body;
-    console.log("התקבלו נתונים חדשים מהטופס!");
-
     const newForm = new FormModel({ data: clientData });
     await newForm.save();
-
     res
       .status(200)
       .json({ success: true, message: "הנתונים התקבלו ונשמרו בהצלחה!" });
   } catch (error) {
-    console.error("❌ שגיאה בשמירה למסד הנתונים:", error);
-    // עכשיו השרת יחזיר לך לדפדפן את השגיאה המדויקת באנגלית כדי שנדע מה קרה!
-    res.status(500).json({
-      success: false,
-      message: error.message || "שגיאה לא ידועה במסד הנתונים",
-    });
+    res
+      .status(500)
+      .json({ success: false, message: error.message || "שגיאה במסד הנתונים" });
   }
 });
 
@@ -55,7 +48,6 @@ app.get("/api/clients", async (req, res) => {
   }
 });
 
-// פונקציית הפרומפט
 function buildMasterPrompt(clientData) {
   const data = clientData;
   const tone = data.tone || "מקצועי";
@@ -128,6 +120,21 @@ app.put("/api/clients/:id/ai-content", async (req, res) => {
     client.aiContent = req.body.content;
     await client.save();
     res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// --- 5. נתיב חדש: מחיקת לקוח לצמיתות ---
+app.delete("/api/clients/:id", async (req, res) => {
+  try {
+    const client = await FormModel.findByIdAndDelete(req.params.id);
+    if (!client)
+      return res
+        .status(404)
+        .json({ success: false, message: "לא נמצא לקוח למחיקה" });
+
+    res.json({ success: true, message: "הלקוח נמחק בהצלחה לצמיתות" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
